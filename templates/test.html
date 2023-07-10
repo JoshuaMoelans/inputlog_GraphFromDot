@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Network</title>
+    <script
+      type="text/javascript"
+      src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"
+    ></script>
+    <style type="text/css">
+      #mynetwork {
+        width: 600px;
+        height: 600px;
+        border: 1px solid lightgray;
+      }
+    </style>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis.min.css" type="text/css" />
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis.min.js"></script>
+  </head>
+  <body>
+    <div id="mynetwork"></div>
+    <script src="../static/filereader.js"></script>
+      <script type="text/javascript">
+        // set #mynetwork width to be 0.8 screen width
+        document.getElementById("mynetwork").style.width = window.innerWidth * 0.8 + "px";
+        // set #mynetwork height to be 0.8 screen height
+        document.getElementById("mynetwork").style.height = window.innerHeight * 0.9 + "px";
+        // center the network
+        document.getElementById("mynetwork").style.marginLeft = window.innerWidth * 0.1 + "px";
+
+        // add a button to upload a DOT file, which will be used to create a network
+        var btn = document.createElement("BUTTON");
+        btn.innerHTML = "Upload DOT File";
+        btn.style.marginLeft = window.innerWidth * 0.1 + "px";
+        btn.style.marginTop = window.innerHeight * 0.01 + "px";
+        // add the button to the body
+        document.body.appendChild(btn);
+        // add an event listener to the button
+        btn.addEventListener("click", function() {
+            // create an input element
+            var input = document.createElement("input");
+            // set the input element to be of type file
+            input.type = "file";
+            // add an event listener to the input element
+            input.addEventListener("change", function() {
+                // create a file reader
+                var reader = new FileReader();
+                // add an event listener to the file reader
+                reader.addEventListener("load", function() {
+                    // create a network
+                    var network = new vis.Network(
+                        document.getElementById("mynetwork"),
+                        // parse the DOT file
+                        vis.network.convertDot(reader.result),
+                        {}
+                    );
+                });
+                // read the file
+                reader.readAsText(input.files[0]);
+            });
+            // click the input element
+            input.click();
+            // when the file content is read, put it into a dotString and update the network
+        });
+      // create a network
+      var dotString = "digraph source_graph {\n" +
+              "\trankdir=LR;\n" +
+              "\tnode [shape=circle style=filled fixedsize=true fontsize=20];\n" +
+              "\tsize=\"15\";\n" +
+              "\n" +
+              "\tnode [width=51 fillcolor=white bordercolor=black label=\"WordLog MainDoc\"] 1\n" +
+              "\tnode [width=5 fillcolor=white bordercolor=black label=\"TASKBAR\"] 2\n" +
+              "\tnode [width=5 fillcolor=white bordercolor=black label=\"Untitled - Google Chrome\"] 3\n" +
+              "\tnode [width=5 fillcolor=white bordercolor=black label=\"Google - Google Chrome\"] 4\n" +
+              "\tnode [width=5 fillcolor=white bordercolor=black label=\"wikipedia - Google Search - Google Chrome\"] 5\n" +
+              "\tnode [width=5 fillcolor=white bordercolor=black label=\"Wikipedia - Google Chrome\"] 6\n" +
+              "\tnode [width=9 fillcolor=white bordercolor=black label=\"C++ - Wikipedia - Google Chrome\"] 7\n" +
+              "\tnode [width=5 fillcolor=white bordercolor=black label=\"Task Switching\"] 8\n" +
+              "\tnode [width=5 fillcolor=white bordercolor=black label=\"Tab for a Cause - Google Chrome\"] 9\n" +
+              "\tnode [width=5 fillcolor=white bordercolor=black label=\"tab.gladly.io/newtab/ - Google Chrome\"] 10\n" +
+              "\tnode [width=5 fillcolor=white bordercolor=black label=\"java - Google Search - Google Chrome\"] 11\n" +
+              "\tnode [width=5 fillcolor=white bordercolor=black label=\"java.com/en/ - Google Chrome\"] 12\n" +
+              "\tnode [width=5 fillcolor=white bordercolor=black label=\"Java | Oracle - Google Chrome\"] 13\n" +
+              "\tnode [width=11 fillcolor=white bordercolor=black label=\"Save As\"] 14\n" +
+              "\tnode [width=5 fillcolor=white bordercolor=black label=\"New notification\"] 15\n" +
+              "\tnode [width=5 fillcolor=white bordercolor=black label=\"InputLog (Running) - Microsoft Visual Studio\"] 16\n" +
+              "\tnode [width=5 fillcolor=white bordercolor=black label=\"#welcome | Joshua's Discord Corner - Discord\"] 17\n" +
+              "\tnode [width=5 fillcolor=white bordercolor=black label=\"Cpp_vs_JavaWordLog_Joshua_20230706145645.docx\"] 18\n" +
+              "\tnode [width=5 fillcolor=white bordercolor=black label=\"System tray overflow window.\"] 19\n" +
+              "\tnode [width=5 fillcolor=white bordercolor=black label=\"Inputlog 9.5.0.1\"] 20\n" +
+              "\n" +
+              "\t1 -> 2 [label=\"3\" penwidth=3];\n" +
+              "\t1 -> 8 [label=\"4\" penwidth=4];\n" +
+              "\t1 -> 14 [label=\"1\" penwidth=1];\n" +
+              "\t1 -> 18 [label=\"1\" penwidth=1];\n" +
+              "\t2 -> 3 [label=\"1\" penwidth=1];\n" +
+              "\t2 -> 15 [label=\"1\" penwidth=1];\n" +
+              "\t2 -> 1 [label=\"1\" penwidth=1];\n" +
+              "\t2 -> 19 [label=\"1\" penwidth=1];\n" +
+              "\t3 -> 4 [label=\"1\" penwidth=1];\n" +
+              "\t3 -> 9 [label=\"1\" penwidth=1];\n" +
+              "\t4 -> 5 [label=\"1\" penwidth=1];\n" +
+              "\t5 -> 6 [label=\"1\" penwidth=1];\n" +
+              "\t6 -> 7 [label=\"1\" penwidth=1];\n" +
+              "\t7 -> 8 [label=\"2\" penwidth=2];\n" +
+              "\t7 -> 3 [label=\"1\" penwidth=1];\n" +
+              "\t8 -> 1 [label=\"5\" penwidth=5];\n" +
+              "\t8 -> 7 [label=\"2\" penwidth=2];\n" +
+              "\t8 -> 16 [label=\"1\" penwidth=1];\n" +
+              "\t8 -> 17 [label=\"1\" penwidth=1];\n" +
+              "\t9 -> 10 [label=\"1\" penwidth=1];\n" +
+              "\t9 -> 11 [label=\"1\" penwidth=1];\n" +
+              "\t10 -> 9 [label=\"1\" penwidth=1];\n" +
+              "\t11 -> 12 [label=\"1\" penwidth=1];\n" +
+              "\t12 -> 13 [label=\"1\" penwidth=1];\n" +
+              "\t13 -> 8 [label=\"1\" penwidth=1];\n" +
+              "\t14 -> 1 [label=\"1\" penwidth=1];\n" +
+              "\t15 -> 8 [label=\"1\" penwidth=1];\n" +
+              "\t16 -> 2 [label=\"1\" penwidth=1];\n" +
+              "\t17 -> 8 [label=\"1\" penwidth=1];\n" +
+              "\t18 -> 1 [label=\"1\" penwidth=1];\n" +
+              "\t19 -> 20 [label=\"1\" penwidth=1];\n" +
+              "}\n";
+      dotToNetwork(dotString);
+
+    </script>
+  </body>
+</html>

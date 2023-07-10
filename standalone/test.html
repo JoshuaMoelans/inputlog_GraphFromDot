@@ -22,10 +22,39 @@
         // function that takes a dotString and converts it to a network
         function dotToNetwork(dotString) {
             var dotData = vis.network.convertDot(dotString);
-            console.log(dotData);
-
+            // loop over the edges in the dotData and set their width to the penwidth already present
+            for (var i = 0; i < dotData.edges.length; i++) {
+                dotData.edges[i].width = dotData.edges[i].penwidth;
+            }
+            // loop over the nodes in the dotData and set their size to the width already present
+            for (var i = 0; i < dotData.nodes.length; i++) {
+                dotData.nodes[i].size = dotData.nodes[i].width;
+                // if size is not defined, set it to 5
+                if (dotData.nodes[i].size === undefined) {
+                    dotData.nodes[i].size = 5;
+                }
+                // also make it so that the node size is not fixed based on the label; using different shape (as those
+                // who have the label within can't be resized)
+                dotData.nodes[i].shape = "dot";
+                // if node has no color attribute yet, add an empty one
+                if (dotData.nodes[i].color === undefined) {
+                    dotData.nodes[i].color = {};
+                }
+                // add a chosen.node function that prints the node label to the console
+                dotData.nodes[i].chosen = {
+                    node: function(values, id, selected, hovering) {
+                        var name = dotData.nodes[id-1].label;
+                        console.log(name); // ToDo add popup with more info (see TODO list)
+                    }
+                };
+                dotData.nodes[i].color.border = dotData.nodes[i].bordercolor;
+            }
             var container = document.getElementById("mynetwork");
-            var options = {};
+            var options = {
+                physics: {
+                    enabled: true
+                },
+            };
             var network = new vis.Network(container, dotData, options);
         }
     </script>
@@ -57,12 +86,12 @@
                 // add an event listener to the file reader
                 reader.addEventListener("load", function() {
                     // create a network
-                    var network = new vis.Network(
-                        document.getElementById("mynetwork"),
-                        // parse the DOT file
-                        vis.network.convertDot(reader.result),
-                        {}
-                    );
+                    var dotString = reader.result;
+                    try{
+                        dotToNetwork(dotString);
+                    } catch (err) {
+                        alert("Error loading network: " + err.message);
+                    }
                 });
                 // read the file
                 reader.readAsText(input.files[0]);

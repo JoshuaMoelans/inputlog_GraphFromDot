@@ -5,15 +5,15 @@ digraph source_graph {
 
 	node [width=51 fillcolor=white bordercolor=black label="WordLog MainDoc"] 1
 	node [width=5 fillcolor=white bordercolor=black label="TASKBAR" cluster="SYSTEM"] 2
-	node [width=5 fillcolor=white bordercolor=black label="Untitled - Google Chrome"] 3
-	node [width=5 fillcolor=white bordercolor=black label="Google - Google Chrome"] 4
-	node [width=5 fillcolor=white bordercolor=black label="wikipedia - Google Search - Google Chrome"] 5
+	node [width=5 fillcolor=white bordercolor=black label="Untitled - Google Chrome"  cluster="GOOGLE"] 3
+	node [width=5 fillcolor=white bordercolor=black label="Google - Google Chrome" cluster="GOOGLE"] 4
+	node [width=5 fillcolor=white bordercolor=black label="wikipedia - Google Search - Google Chrome" cluster="GOOGLE"] 5
 	node [width=5 fillcolor=white bordercolor=black label="Wikipedia - Google Chrome" cluster="Wikipedia"] 6
 	node [width=9 fillcolor=white bordercolor=black label="C++ - Wikipedia - Google Chrome" cluster="Wikipedia"] 7
 	node [width=5 fillcolor=white bordercolor=black label="Task Switching" cluster="SYSTEM"] 8
-	node [width=5 fillcolor=white bordercolor=black label="Tab for a Cause - Google Chrome"] 9
-	node [width=5 fillcolor=white bordercolor=black label="tab.gladly.io/newtab/ - Google Chrome"] 10
-	node [width=5 fillcolor=white bordercolor=black label="java - Google Search - Google Chrome"] 11
+	node [width=5 fillcolor=white bordercolor=black label="Tab for a Cause - Google Chrome"  cluster="GOOGLE"] 9
+	node [width=5 fillcolor=white bordercolor=black label="tab.gladly.io/newtab/ - Google Chrome"  cluster="GOOGLE"] 10
+	node [width=5 fillcolor=white bordercolor=black label="java - Google Search - Google Chrome"  cluster="GOOGLE"] 11
 	node [width=5 fillcolor=white bordercolor=black label="java.com/en/ - Google Chrome"] 12
 	node [width=5 fillcolor=white bordercolor=black label="Java | Oracle - Google Chrome"] 13
 	node [width=11 fillcolor=white bordercolor=black label="Save As" cluster="SYSTEM"] 14

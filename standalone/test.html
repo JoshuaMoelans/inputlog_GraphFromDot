@@ -18,6 +18,11 @@
   </head>
   <body>
     <div id="mynetwork"></div>
+      <input
+      type="button"
+      onclick="clusterTest()"
+      value="Cluster nodes by DOT-defined clusters"
+      />
     <script>
         // function that takes a dotString and converts it to a network
         function dotToNetwork(dotString) {
@@ -55,10 +60,31 @@
                     enabled: true
                 },
             };
+            console.log(dotData)
             var network = new vis.Network(container, dotData, options);
+            return network,dotData;
+        }
+        function generateColors(numColors) {
+          var colors = [];
+          var hueIncrement = 360 / numColors;
+
+          for (var i = 0; i < numColors; i++) {
+            var hue = i * hueIncrement;
+            var color = 'hsl(' + hue + ', 70%, 50%)';
+            colors.push(color);
+          }
+
+          return colors;
         }
     </script>
       <script type="text/javascript">
+        var network, data = null;
+        var container = document.getElementById("mynetwork");
+        var options = {
+            physics: {
+                enabled: true
+            },
+        };
         // set #mynetwork width to be 0.8 screen width
         document.getElementById("mynetwork").style.width = window.innerWidth * 0.8 + "px";
         // set #mynetwork height to be 0.8 screen height
@@ -88,7 +114,7 @@
                     // create a network
                     var dotString = reader.result;
                     try{
-                        dotToNetwork(dotString);
+                        network, data = dotToNetwork(dotString);
                     } catch (err) {
                         alert("Error loading network: " + err.message);
                     }
@@ -159,7 +185,46 @@
               "\t18 -> 1 [label=\"1\" penwidth=1];\n" +
               "\t19 -> 20 [label=\"1\" penwidth=1];\n" +
               "}\n";
-      dotToNetwork(dotString);
+      network, data = dotToNetwork(dotString);
+      function clusterTest() {
+          // this method clusters the nodes based on each node's 'cluster' attribute. If it is not defined, we don't cluster the node
+          // first we gather all distinct cluster labels
+          var clusterLabels = [];
+          for (var i = 0; i < data.nodes.length; i++) {
+              if (data.nodes[i].cluster !== undefined){
+                  if (clusterLabels.indexOf(data.nodes[i].cluster) === -1) {
+                      clusterLabels.push(data.nodes[i].cluster);
+                  }
+              }
+          }
+          // early return if no clusters are defined; the network will remain unchanged (else stuff moves around)
+            if (clusterLabels.length === 0) {
+                return;
+            }
+        network = new vis.Network(container, data, options);
+         network.on("selectNode", function (params) { // re-open clusters when a cluster is clicked
+          if (params.nodes.length === 1) {
+            if (network.isCluster(params.nodes[0]) === true) {
+              network.openCluster(params.nodes[0]); // TODO think we lose information on edge labels here, should be fixed
+                // reproduce behaviour by clustering the example network, then clicking on a cluster; all outgoing
+                // edges' labels are lost. Also, the to-cluster edge label is not correct (values don't seem to be added)
+                // we should have at least a value of 7 from MainDoc to SYSTEM but it says 3 (the number of nodes within the cluster our MainDoc node has an edge to)
+            }
+          }
+        });
+          // generate a distinct color for each label:
+          var colors = generateColors(clusterLabels.length) // TODO these could be pre-defined as well; currently they are deterministically 'random'
+          // then we create a cluster for each distinct label
+            for (var i = 0; i < clusterLabels.length; i++) {
+                var clusterOptionsByData = {
+                    joinCondition:function (childOptions) {
+                        return childOptions.cluster === clusterLabels[i];
+                    },
+                    clusterNodeProperties: {id:'cluster:' + clusterLabels[i], borderWidth:3, shape:'box', color:colors[i], label:'Cluster: ' + clusterLabels[i]}
+                };
+                network.cluster(clusterOptionsByData);
+            }
+      }
     </script>
   </body>
 </html>

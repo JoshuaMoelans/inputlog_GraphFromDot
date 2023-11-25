@@ -157,6 +157,7 @@
                 // Generate colors for each label
                 var colors = generateColors(clusterCount) // TODO these could be pre-defined as well; currently they are deterministically 'random'
                 for (const [label, nodes] of Object.entries(clusters)) {
+                    console.log(label, nodes)
                     var clusterOptionsByData = {
                         joinCondition: function (childOptions) {
                             return childOptions.cluster === label;
@@ -164,10 +165,8 @@
                         clusterNodeProperties: {
                             id: "cluster:" + label,
                             borderWidth: 3,
-                            shape: "dot",
-                            size: 30,
-                            color: colors[label],
-                            font: { color: "white" },
+                            shape: "box",
+                            color: colors.pop(),
                             label: `${label} (${nodes.length})`,
                         },
                     };

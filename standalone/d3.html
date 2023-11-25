@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Zoomable Circle Packing</title>
+  <script src="https://d3js.org/d3.v6.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/dagre-d3@0.6.1/dist/dagre-d3.min.js"></script>
+  <style type="text/css">
+    #mynetwork {
+      width: 600px;
+      height: 600px;
+      border: 1px solid lightgray;
+    }
+  </style>
+</head>
+<body>
+  <svg id="mynetwork"></svg>
+  <script type="text/javascript">
+    // function that takes a dotString and converts it to JSON data
+    function graphvizToJSON(dotString) {
+      // Extract clusters and node widths
+      const clusters = [];
+      const clusterDict = {};
+      const nodeWidths = {};
+
+      // Regular expression patterns for extracting cluster and node information
+      const nodePattern = /node\s+\[width=(\d+)\s+.*?\s+label="(.*?)"(?:\s+cluster="(.*?)")?\]\s+(\d+)/gs;
+
+      // Function to find all matches in the string using a regex pattern
+      function findAllMatches(regex, text) {
+        const matches = [];
+        let match;
+        while ((match = regex.exec(text)) !== null) {
+          matches.push(match);
+        }
+        return matches;
+      }
+
+      const nodeMatches = findAllMatches(nodePattern, dotString);
+
+      for (const nodeMatch of nodeMatches) {
+        const nodeWidth = parseInt(nodeMatch[1]);
+        const nodeName = nodeMatch[2];
+        const clusterGroup = nodeMatch[3] || 'root';
+
+        if (clusterGroup === 'root') {
+          clusters.push({
+            name: nodeName,
+            value: nodeWidth,
+          });
+        }
+        else {
+          if (clusterDict[clusterGroup] === undefined) {
+            clusterDict[clusterGroup] = {
+              name: clusterGroup,
+              children: [],
+            };
+          }
+
+          nodeWidths[nodeName] = nodeWidth;
+          clusterDict[clusterGroup].children.push({
+            name: nodeName,
+            value: nodeWidth,
+          });
+        }
+      }      
+
+      for (const clusterGroup in clusterDict) {
+        clusters.push(clusterDict[clusterGroup]);
+      }
+
+      // Convert JSON data to a hierarchical format
+      const root = {
+        name: "root",
+        children: clusters,
+      };
+
+      return d3.hierarchy(root).sum(d => d.value);
+    }
+
+    var data = null;
+    var container = document.getElementById("mynetwork");
+
+    // set #mynetwork width to be 0.8 screen width
+    document.getElementById("mynetwork").style.width = window.innerWidth * 0.8 + "px";
+    // set #mynetwork height to be 0.8 screen height
+    document.getElementById("mynetwork").style.height = window.innerHeight * 0.9 + "px";
+    // center the network
+    document.getElementById("mynetwork").style.marginLeft = window.innerWidth * 0.1 + "px";
+
+    // create an example network
+    var dotString = `
+digraph source_graph {
+	rankdir=LR;
+	node [shape=circle style=filled fixedsize=true fontsize=20];
+	size="15";
+
+	node [width=51 fillcolor=white bordercolor=black label="WordLog MainDoc"] 1
+	node [width=5 fillcolor=white bordercolor=black label="TASKBAR" cluster="SYSTEM"] 2
+	node [width=5 fillcolor=white bordercolor=black label="Untitled - Google Chrome"  cluster="GOOGLE"] 3
+	node [width=5 fillcolor=white bordercolor=black label="Google - Google Chrome" cluster="GOOGLE"] 4
+	node [width=5 fillcolor=white bordercolor=black label="wikipedia - Google Search - Google Chrome" cluster="GOOGLE"] 5
+	node [width=5 fillcolor=white bordercolor=black label="Wikipedia - Google Chrome" cluster="Wikipedia"] 6
+	node [width=9 fillcolor=white bordercolor=black label="C++ - Wikipedia - Google Chrome" cluster="Wikipedia"] 7
+	node [width=5 fillcolor=white bordercolor=black label="Task Switching" cluster="SYSTEM"] 8
+	node [width=5 fillcolor=white bordercolor=black label="Tab for a Cause - Google Chrome"  cluster="GOOGLE"] 9
+	node [width=5 fillcolor=white bordercolor=black label="tab.gladly.io/newtab/ - Google Chrome"  cluster="GOOGLE"] 10
+	node [width=5 fillcolor=white bordercolor=black label="java - Google Search - Google Chrome"  cluster="GOOGLE"] 11
+	node [width=5 fillcolor=white bordercolor=black label="java.com/en/ - Google Chrome"] 12
+	node [width=5 fillcolor=white bordercolor=black label="Java | Oracle - Google Chrome"] 13
+	node [width=11 fillcolor=white bordercolor=black label="Save As" cluster="SYSTEM"] 14
+	node [width=5 fillcolor=white bordercolor=black label="New notification"] 15
+	node [width=5 fillcolor=white bordercolor=black label="InputLog (Running) - Microsoft Visual Studio"] 16
+	node [width=5 fillcolor=white bordercolor=black label="#welcome | Joshua's Discord Corner - Discord"] 17
+	node [width=5 fillcolor=white bordercolor=black label="Cpp_vs_JavaWordLog_Joshua_20230706145645.docx"] 18
+	node [width=5 fillcolor=white bordercolor=black label="System tray overflow window." cluster="SYSTEM"] 19
+	node [width=5 fillcolor=white bordercolor=black label="Inputlog 9.5.0.1"] 20
+
+	1 -> 2 [label="3" penwidth=3];
+	1 -> 8 [label="4" penwidth=4];
+	1 -> 14 [label="1" penwidth=1];
+	1 -> 18 [label="1" penwidth=1];
+	2 -> 3 [label="1" penwidth=1];
+	2 -> 15 [label="1" penwidth=1];
+	2 -> 1 [label="1" penwidth=1];
+	2 -> 19 [label="1" penwidth=1];
+	3 -> 4 [label="1" penwidth=1];
+	3 -> 9 [label="1" penwidth=1];
+	4 -> 5 [label="1" penwidth=1];
+	5 -> 6 [label="1" penwidth=1];
+	6 -> 7 [label="1" penwidth=1];
+	7 -> 8 [label="2" penwidth=2];
+	7 -> 3 [label="1" penwidth=1];
+	8 -> 1 [label="5" penwidth=5];
+	8 -> 7 [label="2" penwidth=2];
+	8 -> 16 [label="1" penwidth=1];
+	8 -> 17 [label="1" penwidth=1];
+	9 -> 10 [label="1" penwidth=1];
+	9 -> 11 [label="1" penwidth=1];
+	10 -> 9 [label="1" penwidth=1];
+	11 -> 12 [label="1" penwidth=1];
+	12 -> 13 [label="1" penwidth=1];
+	13 -> 8 [label="1" penwidth=1];
+	14 -> 1 [label="1" penwidth=1];
+	15 -> 8 [label="1" penwidth=1];
+	16 -> 2 [label="1" penwidth=1];
+	17 -> 8 [label="1" penwidth=1];
+	18 -> 1 [label="1" penwidth=1];
+	19 -> 20 [label="1" penwidth=1];
+}
+`;
+
+    data = graphvizToJSON(dotString);
+    console.log(data)
+
+    // Set up the SVG container
+    const width = 400;
+    const height = width;
+
+    // Color function
+    const color = d3.scaleLinear()
+        .domain([0, 5])
+        .range(["hsl(152,80%,80%)", "hsl(228,30%,40%)"])
+        .interpolate(d3.interpolateHcl)
+
+    // Pack function
+    const pack = data => d3.pack()
+      .size([width, height])
+      .padding(3)
+      (d3.hierarchy(data)
+      .sum(d => d.value)
+      .sort((a, b) => b.value - a.value));
+
+
+    root = pack(data);
+    let focus = root;
+    let view;
+
+    svg = d3.select("#mynetwork")
+        .attr("viewBox", `-${width / 2} -${height / 2} ${width} ${height}`)
+        .style("display", "block")
+        .style("background", color(0))
+        .style("cursor", "pointer")
+        .on("click", (event) => zoom(event, root));
+
+    svg.append("g")
+      .selectAll("circle")
+      .remove();
+    
+    node = svg.append("g")
+      .selectAll("circle")
+      .data(root.descendants().slice(1))
+      .join("circle")
+        .attr("fill", d => d.children ? color(d.depth) : "white")
+        .attr("pointer-events", d => !d.children ? "none" : null)
+        .on("mouseover", function() { d3.select(this).attr("stroke", "#000"); })
+        .on("mouseout", function() { d3.select(this).attr("stroke", null); })
+        .on("click", (event, d) => focus !== d && (zoom(event, d), event.stopPropagation()));
+
+    label = svg.append("g")
+        .style("font", "5px sans-serif")
+        .attr("pointer-events", "none")
+        .attr("text-anchor", "middle")
+      .selectAll("text")
+      .data(root.descendants())
+      .join("text")
+        .style("fill-opacity", d => d.parent === root ? 1 : 0)
+        .style("display", d => d.parent === root ? "inline" : "none")
+        .text(d => d.data.data.name); 
+    
+
+    // add a button to upload a DOT file, which will be used to create a network
+    var btn = document.createElement("BUTTON");
+    btn.innerHTML = "Upload DOT File";
+    btn.style.marginLeft = window.innerWidth * 0.1 + "px";
+    btn.style.marginTop = window.innerHeight * 0.01 + "px";
+    // add the button to the body
+    document.body.appendChild(btn);
+    // add an event listener to the button
+    btn.addEventListener("click", function() {
+        // create an input element
+        var input = document.createElement("input");
+        // set the input element to be of type file
+        input.type = "file";
+        // add an event listener to the input element
+        input.addEventListener("change", function() {
+            // create a file reader
+            var reader = new FileReader();
+            // add an event listener to the file reader
+            reader.addEventListener("load", function() {
+                // create a network
+                var dotString = reader.result;
+                try {
+                    data = graphvizToJSON(dotString);
+                    console.log(data)
+                } catch (err) {
+                    alert("Error loading network: " + err.message);
+                }
+            });
+            // read the file
+            reader.readAsText(input.files[0]);
+        });
+        // click the input element
+        input.click();
+        // when the file content is read, put it into a dotString and update the network
+    });
+
+    function zoomTo(v) {
+      const k = width / v[2];
+
+      view = v;
+
+      label.attr("transform", d => `translate(${(d.x - v[0]) * k},${(d.y - v[1]) * k})`);
+      node.attr("transform", d => `translate(${(d.x - v[0]) * k},${(d.y - v[1]) * k})`);
+      node.attr("r", d => d.r * k);
+    }
+
+    function zoom(event, d) {
+      const focus0 = focus;
+
+      focus = d;
+
+      const transition = svg.transition()
+          .duration(event.altKey ? 7500 : 750)
+          .tween("zoom", d => {
+            const i = d3.interpolateZoom(view, [focus.x, focus.y, focus.r * 2]);
+            return t => zoomTo(i(t));
+          });
+
+      label
+        .filter(function(d) { return d.parent === focus || this.style.display === "inline"; })
+        .transition(transition)
+          .style("fill-opacity", d => d.parent === focus ? 1 : 0)
+          .on("start", function(d) { if (d.parent === focus) this.style.display = "inline"; })
+          .on("end", function(d) { if (d.parent !== focus) this.style.display = "none"; });
+    }
+
+    zoomTo([root.x, root.y, root.r * 2]);
+  </script>
+</body>
+</html>

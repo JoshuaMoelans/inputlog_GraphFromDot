@@ -133,24 +133,24 @@
               "\tsize=\"15\";\n" +
               "\n" +
               "\tnode [width=51 fillcolor=white bordercolor=black label=\"WordLog MainDoc\"] 1\n" +
-              "\tnode [width=5 fillcolor=white bordercolor=black label=\"TASKBAR\"] 2\n" +
-              "\tnode [width=5 fillcolor=white bordercolor=black label=\"Untitled - Google Chrome\"] 3\n" +
-              "\tnode [width=5 fillcolor=white bordercolor=black label=\"Google - Google Chrome\"] 4\n" +
-              "\tnode [width=5 fillcolor=white bordercolor=black label=\"wikipedia - Google Search - Google Chrome\"] 5\n" +
-              "\tnode [width=5 fillcolor=white bordercolor=black label=\"Wikipedia - Google Chrome\"] 6\n" +
-              "\tnode [width=9 fillcolor=white bordercolor=black label=\"C++ - Wikipedia - Google Chrome\"] 7\n" +
-              "\tnode [width=5 fillcolor=white bordercolor=black label=\"Task Switching\"] 8\n" +
-              "\tnode [width=5 fillcolor=white bordercolor=black label=\"Tab for a Cause - Google Chrome\"] 9\n" +
-              "\tnode [width=5 fillcolor=white bordercolor=black label=\"tab.gladly.io/newtab/ - Google Chrome\"] 10\n" +
-              "\tnode [width=5 fillcolor=white bordercolor=black label=\"java - Google Search - Google Chrome\"] 11\n" +
+              "\tnode [width=5 fillcolor=white bordercolor=black label=\"TASKBAR\" cluster=\"SYSTEM\"] 2\n" +
+              "\tnode [width=5 fillcolor=white bordercolor=black label=\"Untitled - Google Chrome\" cluster=\"GOOGLE\"] 3\n" +
+              "\tnode [width=5 fillcolor=white bordercolor=black label=\"Google - Google Chrome\" cluster=\"GOOGLE\"] 4\n" +
+              "\tnode [width=5 fillcolor=white bordercolor=black label=\"wikipedia - Google Search - Google Chrome\" cluster=\"GOOGLE\"] 5\n" +
+              "\tnode [width=5 fillcolor=white bordercolor=black label=\"Wikipedia - Google Chrome\" cluster=\"WIKIPEDIA\"] 6\n" +
+              "\tnode [width=9 fillcolor=white bordercolor=black label=\"C++ - Wikipedia - Google Chrome\" cluster=\"WIKIPEDIA\"] 7\n" +
+              "\tnode [width=5 fillcolor=white bordercolor=black label=\"Task Switching\" cluster=\"SYSTEM\"] 8\n" +
+              "\tnode [width=5 fillcolor=white bordercolor=black label=\"Tab for a Cause - Google Chrome\" cluster=\"GOOGLE\"] 9\n" +
+              "\tnode [width=5 fillcolor=white bordercolor=black label=\"tab.gladly.io/newtab/ - Google Chrome\" cluster=\"GOOGLE\"] 10\n" +
+              "\tnode [width=5 fillcolor=white bordercolor=black label=\"java - Google Search - Google Chrome\" cluster=\"GOOGLE\"] 11\n" +
               "\tnode [width=5 fillcolor=white bordercolor=black label=\"java.com/en/ - Google Chrome\"] 12\n" +
               "\tnode [width=5 fillcolor=white bordercolor=black label=\"Java | Oracle - Google Chrome\"] 13\n" +
-              "\tnode [width=11 fillcolor=white bordercolor=black label=\"Save As\"] 14\n" +
-              "\tnode [width=5 fillcolor=white bordercolor=black label=\"New notification\"] 15\n" +
+              "\tnode [width=11 fillcolor=white bordercolor=black label=\"Save As\" cluster=\"SYSTEM\"] 14\n" +
+              "\tnode [width=5 fillcolor=white bordercolor=black label=\"New notification\" cluster=\"SYSTEM\"] 15\n" +
               "\tnode [width=5 fillcolor=white bordercolor=black label=\"InputLog (Running) - Microsoft Visual Studio\"] 16\n" +
               "\tnode [width=5 fillcolor=white bordercolor=black label=\"#welcome | Joshua's Discord Corner - Discord\"] 17\n" +
               "\tnode [width=5 fillcolor=white bordercolor=black label=\"Cpp_vs_JavaWordLog_Joshua_20230706145645.docx\"] 18\n" +
-              "\tnode [width=5 fillcolor=white bordercolor=black label=\"System tray overflow window.\"] 19\n" +
+              "\tnode [width=5 fillcolor=white bordercolor=black label=\"System tray overflow window.\" cluster=\"SYSTEM\"] 19\n" +
               "\tnode [width=5 fillcolor=white bordercolor=black label=\"Inputlog 9.5.0.1\"] 20\n" +
               "\n" +
               "\t1 -> 2 [label=\"3\" penwidth=3];\n" +
@@ -190,28 +190,37 @@
           // this method clusters the nodes based on each node's 'cluster' attribute. If it is not defined, we don't cluster the node
           // first we gather all distinct cluster labels
           var clusterLabels = [];
+          var clusterSizes = [];
           for (var i = 0; i < data.nodes.length; i++) {
               if (data.nodes[i].cluster !== undefined){
                   if (clusterLabels.indexOf(data.nodes[i].cluster) === -1) {
                       clusterLabels.push(data.nodes[i].cluster);
+                      // clusterSizes.push(data.nodes[i].width);
+                      clusterSizes.push(1);
+                  }
+                  else {
+                      // clusterSizes[clusterLabels.indexOf(data.nodes[i].cluster)] += data.nodes[i].width;
+                      clusterSizes[clusterLabels.indexOf(data.nodes[i].cluster)] += 1;
                   }
               }
           }
+          console.log(clusterLabels);
+          console.log(clusterSizes);
           // early return if no clusters are defined; the network will remain unchanged (else stuff moves around)
-            if (clusterLabels.length === 0) {
-                return;
-            }
-        network = new vis.Network(container, data, options);
-         network.on("selectNode", function (params) { // re-open clusters when a cluster is clicked
-          if (params.nodes.length === 1) {
-            if (network.isCluster(params.nodes[0]) === true) {
-              network.openCluster(params.nodes[0]); // TODO think we lose information on edge labels here, should be fixed
-                // reproduce behaviour by clustering the example network, then clicking on a cluster; all outgoing
-                // edges' labels are lost. Also, the to-cluster edge label is not correct (values don't seem to be added)
-                // we should have at least a value of 7 from MainDoc to SYSTEM but it says 3 (the number of nodes within the cluster our MainDoc node has an edge to)
-            }
+          if (clusterLabels.length === 0) {
+              return;
           }
-        });
+          network = new vis.Network(container, data, options);
+          network.on("selectNode", function (params) { // re-open clusters when a cluster is clicked
+            if (params.nodes.length === 1) {
+              if (network.isCluster(params.nodes[0]) === true) {
+                network.openCluster(params.nodes[0]); // TODO think we lose information on edge labels here, should be fixed
+                  // reproduce behaviour by clustering the example network, then clicking on a cluster; all outgoing
+                  // edges' labels are lost. Also, the to-cluster edge label is not correct (values don't seem to be added)
+                  // we should have at least a value of 7 from MainDoc to SYSTEM but it says 3 (the number of nodes within the cluster our MainDoc node has an edge to)
+              }
+            }
+          });
           // generate a distinct color for each label:
           var colors = generateColors(clusterLabels.length) // TODO these could be pre-defined as well; currently they are deterministically 'random'
           // then we create a cluster for each distinct label
@@ -220,7 +229,7 @@
                     joinCondition:function (childOptions) {
                         return childOptions.cluster === clusterLabels[i];
                     },
-                    clusterNodeProperties: {id:'cluster:' + clusterLabels[i], borderWidth:3, shape:'box', color:colors[i], label:'Cluster: ' + clusterLabels[i]}
+                    clusterNodeProperties: {id:'cluster:' + clusterLabels[i], borderWidth:3, shape:'box', color:colors[i], label:clusterLabels[i] + " (" + clusterSizes[i] + ")"}
                 };
                 network.cluster(clusterOptionsByData);
             }

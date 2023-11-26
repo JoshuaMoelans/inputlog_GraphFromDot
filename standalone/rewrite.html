@@ -154,18 +154,8 @@
             function createNetwork() {
                 var network = new vis.Network(container, data, options);
                 network.on("selectNode", function (params) {
-                    // Re-open clusters when a cluster is clicked
-                    if (params.nodes.length === 1) {
-                        var nodeId = params.nodes[0];
-                        if (network.isCluster(nodeId) === true) {
-                            network.openCluster(nodeId); // TODO think we lose information on edge labels here, should be fixed
-                            // reproduce behaviour by clustering the example network, then clicking on a cluster; all outgoing
-                            // edges' labels are lost. Also, the to-cluster edge label is not correct (values don't seem to be added)
-                            // we should have at least a value of 7 from MainDoc to SYSTEM but it says 3 (the number of nodes within the cluster our MainDoc node has an edge to)
-                        }
-                    }
-                    // Update info box
                     updateInfoBox(params.nodes);
+                    openClusters(params.nodes);
                 });
 
                 network.on("deselectNode", function (params) {
@@ -174,6 +164,7 @@
 
                 network.on("dragStart", function (params) {
                     updateInfoBox(params.nodes);
+                    openClusters(params.nodes);
                 });
 
                 // Ensure nodes are fixed after dragging
@@ -192,15 +183,29 @@
                 if (nodes.length > 0) {
                     var selectedSize = 0;
                     for (nodeId of nodes) {
-                        var node = network.body.data.nodes._data[nodeId];
-                        selectedSize += node.size;
-                        info.innerHTML += `<p>${node.label}</p>`;
+                        console.log(nodeId, network.isCluster(nodeId));
+                        if (network.isCluster(nodeId) === false) {
+                            var node = network.body.data.nodes._data[nodeId];
+                            selectedSize += node.size;
+                            info.innerHTML += `<p>${node.label}</p>`;
+                        }
                     }
                     var selectedPercentage = Math.round(selectedSize / totalSize * 100);
                     info.innerHTML += `<p><b>Total size:</b> ${selectedSize}`;
                     info.innerHTML += `<p><b>Relative Time Spent:</b> ${selectedPercentage}%</p>`;
                 } else {
                     info.innerHTML += "<p>None</p>";
+                }
+            }
+
+            function openClusters(nodes) {
+                for (node of nodes) {
+                    if (network.isCluster(node) === true) {
+                        network.openCluster(node); // TODO think we lose information on edge labels here, should be fixed
+                        // reproduce behaviour by clustering the example network, then clicking on a cluster; all outgoing
+                        // edges' labels are lost. Also, the to-cluster edge label is not correct (values don't seem to be added)
+                        // we should have at least a value of 7 from MainDoc to SYSTEM but it says 3 (the number of nodes within the cluster our MainDoc node has an edge to)
+                    }
                 }
             }
 

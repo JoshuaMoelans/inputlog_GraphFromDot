@@ -10,11 +10,32 @@
             height: 600px;
             border: 1px solid lightgray;
         }
+        #info {
+            position: absolute;
+            top: 1vw;
+            left: 4vw;
+            border: 3px solid black;
+            background-color: rgba(204, 204, 204, 0.8);
+            padding: 10px;
+            z-index: 1;
+        }
+        p {
+            line-height: 5px; 
+            margin-top:1px;
+        }
+        p:last-of-type {
+            margin-bottom: 1px;
+        }
+        
     </style>
 </head>
 <body>
     <div id="page">
         <div id="mynetwork"></div>
+        <div id="info">
+            <p><b>Selected nodes:</b></p>
+            <p>None</p>
+        </div>
         <div id="buttons">
             <input type="button" id="uploadButton" value="Upload DOT file">
             <input type="button" id="clusterButton" value="Cluster nodes by DOT-defined clusters">
@@ -25,6 +46,7 @@
     <script>
         document.addEventListener("DOMContentLoaded", function () {
             var network, data;
+            var totalSize;
             var selectedNode;
             var options = {
                 interaction: {
@@ -36,6 +58,7 @@
             };
             var page = document.getElementById("page");
             var container = document.getElementById("mynetwork");
+            var info = document.getElementById("info");
             var buttons = document.getElementById("buttons");
             var defaultGraph = "digraph source_graph {\n" +
               "\trankdir=LR;\n" +
@@ -98,8 +121,8 @@
 
             function initializeNetwork() {
                 // Set up initial network settings
-                page.style.marginLeft = window.innerWidth * 0.1 + "px";
-                container.style.width = window.innerWidth * 0.8 + "px";
+                page.style.marginLeft = window.innerWidth * 0.03 + "px";
+                container.style.width = window.innerWidth * 0.94 + "px";
                 container.style.height = window.innerHeight * 0.9 + "px";
                 buttons.style.marginTop = window.innerHeight * 0.01 + "px";
 
@@ -130,8 +153,8 @@
 
             function createNetwork() {
                 var network = new vis.Network(container, data, options);
-                // Re-open clusters when a cluster is clicked
                 network.on("selectNode", function (params) {
+                    // Re-open clusters when a cluster is clicked
                     if (params.nodes.length === 1) {
                         var nodeId = params.nodes[0];
                         if (network.isCluster(nodeId) === true) {
@@ -141,7 +164,14 @@
                             // we should have at least a value of 7 from MainDoc to SYSTEM but it says 3 (the number of nodes within the cluster our MainDoc node has an edge to)
                         }
                     }
+                    // Update info box
+                    updateInfoBox(params.nodes)
                 });
+
+                network.on("deselectNode", function (params) {
+                    updateInfoBox(params.nodes)
+                });
+
                 // Ensure nodes are fixed after dragging
                 network.on("dragEnd", function (params) {
                     for (nodeId of network.getSelection().nodes) {
@@ -151,6 +181,23 @@
                 })
 
                 return network
+            }
+
+            function updateInfoBox(nodes) {
+                info.innerHTML = "<p><b>Selected nodes:</b><p>";
+                if (nodes.length > 0) {
+                    var selectedSize = 0;
+                    for (nodeId of nodes) {
+                        var node = network.body.data.nodes._data[nodeId];
+                        selectedSize += node.size;
+                        info.innerHTML += `<p>${node.label}</p>`;
+                    }
+                    var selectedPercentage = Math.round(selectedSize / totalSize * 100);
+                    info.innerHTML += `<p><b>Total size:</b> ${selectedSize}`;
+                    info.innerHTML += `<p><b>Relative Time Spent:</b> ${selectedPercentage}%</p>`;
+                } else {
+                    info.innerHTML += "<p>None</p>";
+                }
             }
 
             function createClusters() {
@@ -212,10 +259,12 @@
             }
 
             function modifyNodes(nodes) {
+                totalSize = 0;
                 // Modify nodes based on DOT-defined node attributes
                 for (var i = 0; i < nodes.length; i++) {
                     // Rename width to size (use 5 if no width is defined)
                     nodes[i].size = nodes[i].width || 5;
+                    totalSize += nodes[i].size;
                     delete nodes[i].width;
 
                     nodes[i].shape = "dot";
@@ -267,6 +316,7 @@
 
                 if (event.code === "Escape") {
                     network.unselectAll();
+                    updateInfoBox([])
                 }
             });
         });

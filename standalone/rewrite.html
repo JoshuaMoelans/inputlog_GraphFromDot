@@ -25,7 +25,11 @@
     <script>
         document.addEventListener("DOMContentLoaded", function () {
             var network, data;
+            var selectedNode;
             var options = {
+                interaction: {
+                    multiselect: true
+                },
                 physics: {
                     enabled: true
                 },
@@ -99,7 +103,7 @@
                 container.style.height = window.innerHeight * 0.9 + "px";
                 buttons.style.marginTop = window.innerHeight * 0.01 + "px";
 
-                network, data = dotToNetwork(defaultGraph, options);
+                [network, data] = dotToNetwork(defaultGraph, options);
             }
 
             function loadDotFile() {
@@ -124,6 +128,31 @@
                 input.click();
             }
 
+            function createNetwork() {
+                var network = new vis.Network(container, data, options);
+                // Re-open clusters when a cluster is clicked
+                network.on("selectNode", function (params) {
+                    if (params.nodes.length === 1) {
+                        var nodeId = params.nodes[0];
+                        if (network.isCluster(nodeId) === true) {
+                            network.openCluster(nodeId); // TODO think we lose information on edge labels here, should be fixed
+                            // reproduce behaviour by clustering the example network, then clicking on a cluster; all outgoing
+                            // edges' labels are lost. Also, the to-cluster edge label is not correct (values don't seem to be added)
+                            // we should have at least a value of 7 from MainDoc to SYSTEM but it says 3 (the number of nodes within the cluster our MainDoc node has an edge to)
+                        }
+                    }
+                });
+                // Ensure nodes are fixed after dragging
+                network.on("dragEnd", function (params) {
+                    for (nodeId of network.getSelection().nodes) {
+                        var node = network.body.data.nodes._data[nodeId];
+                        network.body.data.nodes.update({id: node.id, fixed: node.fixed})
+                    }
+                })
+
+                return network
+            }
+
             function createClusters() {
                 // Cluster nodes based on DOT-defined clusters
                 const clusters = data.nodes.reduce((acc, node) => {
@@ -140,19 +169,7 @@
                 var clusterCount = Object.entries(clusters).length
                 if (clusterCount === 0) return;
 
-                network = new vis.Network(container, data, options);
-                // Re-open clusters when a cluster is clicked
-                network.on("selectNode", function (params) {
-                    if (params.nodes.length === 1) {
-                        var nodeId = params.nodes[0];
-                        if (network.isCluster(nodeId) === true) {
-                            network.openCluster(nodeId); // TODO think we lose information on edge labels here, should be fixed
-                            // reproduce behaviour by clustering the example network, then clicking on a cluster; all outgoing
-                            // edges' labels are lost. Also, the to-cluster edge label is not correct (values don't seem to be added)
-                            // we should have at least a value of 7 from MainDoc to SYSTEM but it says 3 (the number of nodes within the cluster our MainDoc node has an edge to)
-                        }
-                    }
-                });
+                network = createNetwork();
 
                 // Generate colors for each label
                 var colors = generateColors(clusterCount) // TODO these could be pre-defined as well; currently they are deterministically 'random'
@@ -172,20 +189,17 @@
                     };
                     network.cluster(clusterOptionsByData);
                 }
-                console.log(clusterOptionsByData)
             }
             
 
             function dotToNetwork(dotString, options) {
                 // Convert DOT string to network
                 var data = vis.network.convertDot(dotString);
-
                 modifyEdges(data.edges);
                 modifyNodes(data.nodes);
+                var network = createNetwork();
 
-                var network = new vis.Network(container, data, options);
-
-                return network, data;
+                return [network, data];
             }
 
             function modifyEdges(edges) {
@@ -205,14 +219,14 @@
                     delete nodes[i].width;
 
                     nodes[i].shape = "dot";
+                    nodes[i].fixed = false;
 
                     nodes[i].color = nodes[i].color || {};
                     nodes[i].color.border = nodes[i].bordercolor || "black";
 
                     nodes[i].chosen = {
                         node: function(values, id, selected, hovering) {
-                            var name = nodes[id - 1].label;
-                            console.log(name);
+                            selectedNode = nodes[id - 1]
                         }
                     }
                 }
@@ -232,15 +246,29 @@
                 return colors;
             }
 
-            // Event listeners
-            document.getElementById("clusterButton").addEventListener("click", createClusters);
-            document.getElementById("uploadButton").addEventListener("click", loadDotFile);
-
             // Initial setup
             initializeNetwork();
 
-            // Load initial DOT file
-            loadDotFile(defaultGraph);
+            // Event listeners
+            console.log(initializeNetwork());
+            document.getElementById("clusterButton").addEventListener("click", createClusters);
+            document.getElementById("uploadButton").addEventListener("click", loadDotFile);
+            document.addEventListener("keydown", function(event) {
+                if (event.code === "Space") {
+                    for (nodeId of network.getSelection().nodes) {
+                        var node = network.body.data.nodes._data[nodeId];
+                        node.fixed = !node.fixed;
+                        node.color = {background: (node.fixed ? "red" : "white"), border: "black" };
+                        network.body.data.nodes.update({id: node.id, fixed: node.fixed, color: node.color});
+                        console.log(node);
+                    }
+
+                }
+
+                if (event.code === "Escape") {
+                    network.unselectAll();
+                }
+            });
         });
     </script>
 </body>

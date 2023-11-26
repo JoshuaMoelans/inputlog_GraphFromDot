@@ -299,6 +299,8 @@
             }
 
             // Initial setup
+            // TODO: Currently doesn't work if I don't call initializeNetwork() twice, not sure why
+            initializeNetwork();
             initializeNetwork();
 
             // Event listeners
@@ -311,6 +313,7 @@
                         node.fixed = !node.fixed;
                         node.color = {background: (node.fixed ? "red" : "white"), border: "black" };
                         network.body.data.nodes.update({id: node.id, fixed: node.fixed, color: node.color});
+                        console.log(node);
                     }
 
                 }

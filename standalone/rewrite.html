@@ -165,22 +165,26 @@
                         }
                     }
                     // Update info box
-                    updateInfoBox(params.nodes)
+                    updateInfoBox(params.nodes);
                 });
 
                 network.on("deselectNode", function (params) {
-                    updateInfoBox(params.nodes)
+                    updateInfoBox(params.nodes);
+                });
+
+                network.on("dragStart", function (params) {
+                    updateInfoBox(params.nodes);
                 });
 
                 // Ensure nodes are fixed after dragging
                 network.on("dragEnd", function (params) {
                     for (nodeId of network.getSelection().nodes) {
                         var node = network.body.data.nodes._data[nodeId];
-                        network.body.data.nodes.update({id: node.id, fixed: node.fixed})
+                        network.body.data.nodes.update({id: node.id, fixed: node.fixed});
                     }
                 })
 
-                return network
+                return network;
             }
 
             function updateInfoBox(nodes) {
@@ -221,7 +225,6 @@
                 // Generate colors for each label
                 var colors = generateColors(clusterCount) // TODO these could be pre-defined as well; currently they are deterministically 'random'
                 for (const [label, nodes] of Object.entries(clusters)) {
-                    console.log(label, nodes)
                     var clusterOptionsByData = {
                         joinCondition: function (childOptions) {
                             return childOptions.cluster === label;
@@ -299,7 +302,6 @@
             initializeNetwork();
 
             // Event listeners
-            console.log(initializeNetwork());
             document.getElementById("clusterButton").addEventListener("click", createClusters);
             document.getElementById("uploadButton").addEventListener("click", loadDotFile);
             document.addEventListener("keydown", function(event) {
@@ -309,7 +311,6 @@
                         node.fixed = !node.fixed;
                         node.color = {background: (node.fixed ? "red" : "white"), border: "black" };
                         network.body.data.nodes.update({id: node.id, fixed: node.fixed, color: node.color});
-                        console.log(node);
                     }
 
                 }

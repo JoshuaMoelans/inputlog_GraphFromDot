@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <title>Network</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis.min.css" type="text/css">
+    <script type="text/javascript" src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
     <style type="text/css">
         #mynetwork {
             width: 600px;
@@ -54,11 +55,10 @@
         </div>
         <div id="buttons">
             <input type="button" id="uploadButton" value="Upload DOT file">
-            <input type="button" id="clusterButton" value="Cluster nodes by DOT-defined clusters">
+            <input type="button" id="clusterButton" value="Cluster nodes">
         </div>
     </div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis.min.js"></script>
     <script>
         document.addEventListener("DOMContentLoaded", function () {
             var network, data;
@@ -186,8 +186,9 @@
                 // Ensure nodes are fixed after dragging
                 network.on("dragEnd", function (params) {
                     for (nodeId of network.getSelection().nodes) {
-                        var node = network.body.data.nodes._data[nodeId];
-                        network.body.data.nodes.update({id: node.id, fixed: node.fixed});
+                        //TODO fix the code below; not sure what it's meant to do
+                        var node = network.body.nodes[nodeId];
+                        network.body.data.nodes[nodeId] = node;
                     }
                 })
 
@@ -201,8 +202,8 @@
                     for (nodeId of nodes) {
                         console.log(nodeId, network.isCluster(nodeId));
                         if (network.isCluster(nodeId) === false) {
-                            var node = network.body.data.nodes._data[nodeId];
-                            selectedSize += node.size;
+                            var node = network.body.nodes[nodeId];
+                            selectedSize += node.shape.radius;
                             info.innerHTML += `<p>${node.label}</p>`;
                         }
                     }
@@ -265,7 +266,7 @@
 
             function dotToNetwork(dotString, options) {
                 // Convert DOT string to network
-                var data = vis.network.convertDot(dotString);
+                var data = vis.parseDOTNetwork(dotString);
                 modifyEdges(data.edges);
                 modifyNodes(data.nodes);
                 var network = createNetwork();
@@ -292,7 +293,7 @@
                     delete nodes[i].width;
 
                     nodes[i].shape = "dot";
-                    nodes[i].fixed = false;
+                    nodes[i].fixed = {x: false, y: false};
 
                     nodes[i].color = nodes[i].color || {};
                     nodes[i].color.border = nodes[i].bordercolor || "black";
@@ -328,15 +329,20 @@
             document.getElementById("clusterButton").addEventListener("click", createClusters);
             document.getElementById("uploadButton").addEventListener("click", loadDotFile);
             document.addEventListener("keydown", function(event) {
-                if (event.code === "Space") {
+                if (event.code === "Space") { // TODO figure out why this only updates after another interaction on-screen
                     for (nodeId of network.getSelection().nodes) {
-                        var node = network.body.data.nodes._data[nodeId];
-                        node.fixed = !node.fixed;
-                        node.color = {background: (node.fixed ? "red" : "white"), border: "black" };
-                        network.body.data.nodes.update({id: node.id, fixed: node.fixed, color: node.color});
+                        var node = network.body.nodes[nodeId];
+                        // TODO figure out why, when dragging a node and then pressing space, the node's 'fixed.x/y' attribute is already set to true?
+                        node.options.fixed.x = !node.options.fixed.x;
+                        node.options.fixed.y = !node.options.fixed.y;
+                        node.options.color = {background: (node.options.fixed.x ? "red" : "white"), border: "black" };
+                        // network.body.nodes.update({id: node.id, fixed: node.fixed, color: node.color}); // TODO nodes is structured differently here
+                        network.body.nodes[nodeId] = node; // TODO this is a hacky way to update the node, but it works
                         console.log(node);
                     }
-
+                }
+                if(event.code === "KeyC") {
+                    createNewCluster(network.getSelection().nodes);
                 }
 
                 if (event.code === "Escape") {
@@ -344,6 +350,18 @@
                     updateInfoBox([])
                 }
             });
+            function createNewCluster(nodes) {
+            // show prompt to get cluster name
+            var clusterName = prompt("Please enter a name for the cluster", "Cluster");
+            if (clusterName == null || clusterName == "") {
+                return;
+            }
+            for (node of nodes) {
+                data.nodes[node - 1].cluster = clusterName;
+            }
+            // press cluster button
+            document.getElementById("clusterButton").click();
+        }
         });
     </script>
 </body>

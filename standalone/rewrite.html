@@ -65,6 +65,9 @@
             var totalSize;
             var selectedNode;
             var options = {
+                layout: { 
+                    randomSeed: 1
+                },
                 interaction: {
                     multiselect: true
                 },
@@ -171,6 +174,9 @@
                 var network = new vis.Network(container, data, options);
                 network.on("selectNode", function (params) {
                     updateInfoBox(params.nodes);
+                });
+
+                network.on("doubleClick", function (params) {
                     openClusters(params.nodes);
                 });
 
@@ -180,7 +186,6 @@
 
                 network.on("dragStart", function (params) {
                     updateInfoBox(params.nodes);
-                    openClusters(params.nodes);
                 });
 
                 // Ensure nodes are fixed after dragging

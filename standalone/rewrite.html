@@ -160,6 +160,10 @@
                         dotString = reader.result;
                         try {
                             network, data = dotToNetwork(dotString);
+                            // TODO remove temporary fix below
+                            defaultGraph = dotString;
+                            initializeNetwork();
+                            initializeNetwork();
                         } catch (err) {
                             alert("Error loading network: " + err.message);
                         }

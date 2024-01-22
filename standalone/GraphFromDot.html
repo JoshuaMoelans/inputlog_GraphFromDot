@@ -23,6 +23,8 @@
             z-index: 1;
             border-radius: 0.5rem;
             font-size: 0.8em;
+            font-family: sans-serif;
+            max-width: 300px;
         }
         p {
             line-height: 5px; 
@@ -50,11 +52,21 @@
     <div id="page">
         <div id="mynetwork"></div>
         <div id="info">
-            <p><b>Selected nodes:</b></p>
-            <p>None</p>
+            <p><b>Controls</b></p>
+            <p></p>
+            <ul>
+                <li><b>left-click</b> to select node/cluster</li>
+                <li><b>esc</b> to unselect node(s)/cluster</li>
+                <li><b>left-click</b> on empty space to unselect node(s)/cluster(s)</li>
+                <li><b>ctrl+left-click</b> to select multiple nodes/clusters</li>
+                <li><b>'c'</b> to create cluster from selection (overwrites existing clustering for selected nodes)</li>
+                <li><b>double-left-click</b> to open cluster</li>
+                <li><b>right-click</b> to save/copy image of current graph</li>
+                <li><b>space</b> to toggle node fixed position (<span style="color: rgba(247, 51, 51, 0.918);"><b>experimental!</b></span>)</li>
+            </ul>
         </div>
         <div id="buttons">
-            <input type="button" id="uploadButton" value="Upload DOT file">
+            <input type="button" id="uploadButton" value="Upload .gv file">
             <input type="button" id="clusterButton" value="Cluster nodes">
         </div>
     </div>
@@ -79,6 +91,7 @@
             var container = document.getElementById("mynetwork");
             var info = document.getElementById("info");
             var buttons = document.getElementById("buttons");
+            var originalInfoBoxHTML = document.getElementById('info').innerHTML;
             var defaultGraph = "digraph source_graph {\n" +
               "\trankdir=LR;\n" +
               "\tnode [shape=circle style=filled fixedsize=true fontsize=20];\n" +
@@ -213,18 +226,26 @@
                         if (network.isCluster(nodeId) === false) {
                             var node = network.body.nodes[nodeId];
                             selectedSize += node.shape.radius;
-                            info.innerHTML += `<p>${node.label}</p>`;
+                            info.innerHTML += `<p>${node.options.label}</p>`;
+                        }else{
+                            var cluster = network.body.nodes[nodeId];
+                            info.innerHTML += `<p>${cluster.options.label}</p>`;
+                            info.innerHTML += `<p><b>Contained Nodes:</b></p>`;
+                            for(let node in cluster.containedNodes){  // loop over contained nodes
+                                selectedSize += cluster.containedNodes[node].shape.radius;
+                                info.innerHTML += `<p style="margin-left: 15px;">${cluster.containedNodes[node].options.label}</p>`; // add label to info box (TODO maybe fix style setting?)
+                            }
                         }
                     }
                     var selectedPercentage = Math.round(selectedSize / totalSize * 100);
-                    info.innerHTML += `<p><b>Total size:</b> ${selectedSize}`;
                     info.innerHTML += `<p><b>Relative Time Spent:</b> ${selectedPercentage}%</p>`;
                 } else {
-                    info.innerHTML += "<p>None</p>";
+                    info.innerHTML = originalInfoBoxHTML;
                 }
             }
 
             function openClusters(nodes) {
+                updateInfoBox([]) // clear info box
                 for (node of nodes) {
                     if (network.isCluster(node) === true) {
                         network.openCluster(node); // TODO think we lose information on edge labels here, should be fixed
@@ -236,6 +257,7 @@
             }
 
             function createClusters() {
+                updateInfoBox([]) // clear info box
                 // Cluster nodes based on DOT-defined clusters
                 const clusters = data.nodes.reduce((acc, node) => {
                     if (node.cluster) {
@@ -313,6 +335,7 @@
                         }
                     }
                 }
+                console.log(totalSize)
             }
 
             function generateColors(numColors) {

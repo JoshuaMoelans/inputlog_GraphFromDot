@@ -25,10 +25,12 @@
             font-size: 0.8em;
             font-family: sans-serif;
             max-width: 300px;
+            overflow-wrap: break-word;
+            word-wrap: break-word;
         }
         p {
-            line-height: 5px; 
-            margin-top:1px;
+            line-height: 12px;
+            margin-bottom: -0.5em;
         }
         p:last-of-type {
             margin-bottom: 1px;
@@ -86,6 +88,11 @@
                 physics: {
                     enabled: true
                 },
+                nodes: {
+                    widthConstraint: {
+                    maximum: 200,
+                },
+                }
             };
             var page = document.getElementById("page");
             var container = document.getElementById("mynetwork");
@@ -218,7 +225,8 @@
             }
 
             function updateInfoBox(nodes) {
-                info.innerHTML = "<p><b>Selected nodes:</b><p>";
+                var html = "<p><b>Selected Source Category:</b><p>";
+                html += "<div id=\"selected_nodes\">";
                 if (nodes.length > 0) {
                     var selectedSize = 0;
                     for (nodeId of nodes) {
@@ -226,18 +234,22 @@
                         if (network.isCluster(nodeId) === false) {
                             var node = network.body.nodes[nodeId];
                             selectedSize += node.shape.radius;
-                            info.innerHTML += `<p>${node.options.label}</p>`;
-                        }else{
+                            html += `<p>${node.options.label}</p>`;
+                        } else {
                             var cluster = network.body.nodes[nodeId];
-                            info.innerHTML += `<p>${cluster.options.label}</p>`;
-                            info.innerHTML += `<p><b>Contained Nodes:</b></p>`;
+                            html += `<p>${cluster.options.label}</p>`;
+                            html += `<p style="margin-left: 15px;"><b>Category contains links:</b></p>`;
                             for(let node in cluster.containedNodes){  // loop over contained nodes
                                 selectedSize += cluster.containedNodes[node].shape.radius;
-                                info.innerHTML += `<p style="margin-left: 15px;">${cluster.containedNodes[node].options.label}</p>`; // add label to info box (TODO maybe fix style setting?)
+                                html += `<p style="margin-left: 30px;">${cluster.containedNodes[node].options.label}</p>`; // add label to info box (TODO maybe fix style setting?)
                             }
                         }
                     }
+                    html += "</div>";
+                    info.innerHTML = html;
                     var selectedPercentage = Math.round(selectedSize / totalSize * 100);
+                    // add horizontal line
+                    info.innerHTML += `<hr style="margin-top: 1em; margin-bottom: 0.5em;">`;
                     info.innerHTML += `<p><b>Relative Time Spent:</b> ${selectedPercentage}%</p>`;
                 } else {
                     info.innerHTML = originalInfoBoxHTML;
@@ -278,6 +290,10 @@
                 // Generate colors for each label
                 var colors = generateColors(clusterCount) // TODO these could be pre-defined as well; currently they are deterministically 'random'
                 for (const [label, nodes] of Object.entries(clusters)) {
+                    var relativeClusterSize = nodes.reduce((acc, node) => {
+                        return acc + data.nodes[node - 1].size;
+                    }, 0)/totalSize;
+                    relativeClusterSize = Math.round(relativeClusterSize * 100);
                     var clusterOptionsByData = {
                         joinCondition: function (childOptions) {
                             return childOptions.cluster === label;
@@ -287,7 +303,7 @@
                             borderWidth: 3,
                             shape: "box",
                             color: colors.pop(),
-                            label: `${label} (${nodes.length})`,
+                            label: `${label} (${relativeClusterSize}%)`,
                         },
                     };
                     network.cluster(clusterOptionsByData);
@@ -383,16 +399,16 @@
                 }
             });
             function createNewCluster(nodes) {
-            // show prompt to get cluster name
-            var clusterName = prompt("Please enter a name for the cluster", "Cluster");
-            if (clusterName == null || clusterName == "") {
-                return;
-            }
-            for (node of nodes) {
-                data.nodes[node - 1].cluster = clusterName;
-            }
-            // press cluster button
-            document.getElementById("clusterButton").click();
+                // show prompt to get cluster name
+                var clusterName = prompt("Please enter a name for the cluster", "Cluster");
+                if (clusterName == null || clusterName == "") {
+                    return;
+                }
+                for (node of nodes) {
+                    data.nodes[node - 1].cluster = clusterName;
+                }
+                // press cluster button
+                document.getElementById("clusterButton").click();
         }
         });
     </script>

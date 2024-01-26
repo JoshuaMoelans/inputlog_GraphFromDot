@@ -1,0 +1,58 @@
+digraph source_graph {
+	rankdir=LR;
+	node [shape=circle style=filled fixedsize=true fontsize=20];
+	size="15";
+
+	node [width=51 fillcolor=white bordercolor=black label="WordLog MainDoc"] 1
+	node [width=5 fillcolor=white bordercolor=black label="TASKBAR" cluster="SYSTEM"] 2
+	node [width=5 fillcolor=white bordercolor=black label="Untitled - Google Chrome"  cluster="GOOGLE"] 3
+	node [width=5 fillcolor=white bordercolor=black label="Google - Google Chrome" cluster="GOOGLE"] 4
+	node [width=5 fillcolor=white bordercolor=black label="wikipedia - Google Search - Google Chrome" cluster="GOOGLE"] 5
+	node [width=5 fillcolor=white bordercolor=black label="Wikipedia - Google Chrome" cluster="Wikipedia"] 6
+	node [width=9 fillcolor=white bordercolor=black label="WINDOW NAME WINDOW NAME WINDOW NAME WINDOW NAME WINDOW NAME WINDOW NAME C++ - Wikipedia - Google Chrome" cluster="Wikipedia"] 7
+	node [width=5 fillcolor=white bordercolor=black label="Task Switching" cluster="SYSTEM"] 8
+	node [width=5 fillcolor=white bordercolor=black label="WINDOW NAME WINDOW NAME WINDOW NAME WINDOW NAME WINDOW NAME WINDOW NAME  Tab for a Cause - Google Chrome"  cluster="GOOGLE"] 9
+	node [width=5 fillcolor=white bordercolor=black label="tab.gladly.io/newtab/ - Google Chrome"  cluster="GOOGLE"] 10
+	node [width=5 fillcolor=white bordercolor=black label="java - Google Search - Google Chrome"  cluster="GOOGLE"] 11
+	node [width=5 fillcolor=white bordercolor=black label="java.com/en/ - Google Chrome"] 12
+	node [width=5 fillcolor=white bordercolor=black label="Java | Oracle - Google Chrome"] 13
+	node [width=11 fillcolor=white bordercolor=black label="Save As" cluster="SYSTEM"] 14
+	node [width=5 fillcolor=white bordercolor=black label="New notification"] 15
+	node [width=5 fillcolor=white bordercolor=black label="InputLog (Running) - Microsoft Visual Studio"] 16
+	node [width=5 fillcolor=white bordercolor=black label="#welcome | Joshua's Discord Corner - Discord"] 17
+	node [width=5 fillcolor=white bordercolor=black label="WINDOW NAME WINDOW NAME WINDOW NAME WINDOW NAME WINDOW NAME WINDOW NAME Cpp_vs_JavaWordLog_Joshua_20230706145645.docx"] 18
+	node [width=5 fillcolor=white bordercolor=black label="System tray overflow window." cluster="SYSTEM"] 19
+	node [width=5 fillcolor=white bordercolor=black label="Inputlog 9.5.0.1"] 20
+
+	1 -> 2 [label="3" penwidth=3];
+	1 -> 8 [label="4" penwidth=4];
+	1 -> 14 [label="1" penwidth=1];
+	1 -> 18 [label="1" penwidth=1];
+	2 -> 3 [label="1" penwidth=1];
+	2 -> 15 [label="1" penwidth=1];
+	2 -> 1 [label="1" penwidth=1];
+	2 -> 19 [label="1" penwidth=1];
+	3 -> 4 [label="1" penwidth=1];
+	3 -> 9 [label="1" penwidth=1];
+	4 -> 5 [label="1" penwidth=1];
+	5 -> 6 [label="1" penwidth=1];
+	6 -> 7 [label="1" penwidth=1];
+	7 -> 8 [label="2" penwidth=2];
+	7 -> 3 [label="1" penwidth=1];
+	8 -> 1 [label="5" penwidth=5];
+	8 -> 7 [label="2" penwidth=2];
+	8 -> 16 [label="1" penwidth=1];
+	8 -> 17 [label="1" penwidth=1];
+	9 -> 10 [label="1" penwidth=1];
+	9 -> 11 [label="1" penwidth=1];
+	10 -> 9 [label="1" penwidth=1];
+	11 -> 12 [label="1" penwidth=1];
+	12 -> 13 [label="1" penwidth=1];
+	13 -> 8 [label="1" penwidth=1];
+	14 -> 1 [label="1" penwidth=1];
+	15 -> 8 [label="1" penwidth=1];
+	16 -> 2 [label="1" penwidth=1];
+	17 -> 8 [label="1" penwidth=1];
+	18 -> 1 [label="1" penwidth=1];
+	19 -> 20 [label="1" penwidth=1];
+}

@@ -47,6 +47,80 @@
             background-color: #357edd;
             color: white;
         }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.4);
+        }
+
+        .modal-content {
+            justify-content: center;
+            display: flex;
+            flex-direction: column;
+            background-color: #fefefe;
+            margin: 15% auto;
+            padding: 20px;
+            border: 3px solid #357edd;
+            border-radius: 0.5rem;
+            width: 25%;
+            font-family: sans-serif;
+            border-radius: 0.5rem;
+            align-items: center;
+        }
+
+        .modal button {
+            color: #357edd;
+            border: 3px solid #357edd;
+            min-width: 6rem;
+            border-radius: 0.5rem;
+            font-size: 0.8em;
+            min-height: 2rem;
+            margin-top: 10px;
+        }
+
+        #clusterName{
+            color: #357edd;
+            min-width: 6rem;
+            border: 1px solid black;
+            border-radius: 0.5rem;
+            font-size: 0.8em;
+            min-height: 2rem;
+            margin-top: 10px;
+            margin-right: 15px;
+            margin-left: 10px;
+            padding-left: 10px;
+        }
+
+        #clusterName:hover {
+            background-color: white;
+        }
+        
+        #submitClusterName{
+            margin-left: 10px;
+            margin-right: 10px;
+        }
+
+        #submitClusterName:hover {
+            background-color: #357edd;
+            color: white;
+        }
+
+        #cancelClusterName{
+            margin-left: 10px;
+            margin-right: 10px;
+        }
+
+        #cancelClusterName:hover {
+            background-color: #f5532b;
+            color: white;
+        }
         
     </style>
 </head>
@@ -71,6 +145,18 @@
             <input type="button" id="uploadButton" value="Upload .gv file">
             <input type="button" id="clusterButton" value="Cluster nodes">
         </div>
+        <div id="myModal" class="modal">
+            <div class="modal-content">
+                <label for="clusterName"><b>Please enter a name for the cluster:</b></label>
+                <input list="clusterNames" id="clusterName" name="clusterName" />
+                <datalist id="clusterNames">
+                </datalist>
+                <div>
+                    <button id="submitClusterName">Submit</button>
+                    <button id="cancelClusterName">Cancel</button>
+                </div>
+            </div>
+          </div>
     </div>
 
     <script>
@@ -99,6 +185,7 @@
             var info = document.getElementById("info");
             var buttons = document.getElementById("buttons");
             var originalInfoBoxHTML = document.getElementById('info').innerHTML;
+            var clusters = new Set();
             var defaultGraph = "digraph source_graph {\n" +
               "\trankdir=LR;\n" +
               "\tnode [shape=circle style=filled fixedsize=true fontsize=20];\n" +
@@ -353,6 +440,10 @@
                     nodes[i].color = nodes[i].color || {};
                     nodes[i].color.border = nodes[i].bordercolor || "black";
 
+                    if(nodes[i].cluster){
+                        clusters.add(nodes[i].cluster);
+                    }
+
                     // check if label is too long (over labelTruncateSize characters); if this is the case, truncate it & store full label in title (for use in info box)
                     nodes[i].title = nodes[i].label;
                     var labelTruncateSize = 20;
@@ -405,25 +496,65 @@
                     }
                 }
                 if(event.code === "KeyC") {
+                    // don't create cluster if modal is open
+                    var modal = document.getElementById('myModal');
+                    if (modal.style.display === "block") {
+                        return;
+                    }
                     createNewCluster(network.getSelection().nodes);
                 }
 
                 if (event.code === "Escape") {
-                    network.unselectAll();
-                    updateInfoBox([])
+                    var modal = document.getElementById('myModal');
+                    if (modal.style.display === "block") {
+                        modal.style.display = "none";
+                    }else{ // only unselect nodes if modal is not open
+                        network.unselectAll();
+                        updateInfoBox([]);
+                    }
                 }
             });
             function createNewCluster(nodes) {
-                // show prompt to get cluster name
-                var clusterName = prompt("Please enter a name for the cluster", "Cluster");
-                if (clusterName == null || clusterName == "") {
+                if (nodes.length <= 1){
+                    alert("Please select at least 2 nodes to create a cluster.");
                     return;
+                };
+                // show prompt to get cluster name
+                document.getElementById('myModal').style.display = "block";
+                setTimeout(function() { // prevent C from being typed in cluster name input field
+                    var inputField = document.getElementById('clusterName');
+                    inputField.value = ""; // clear input field
+                    inputField.focus(); // focus on input field
+                    inputField.addEventListener('keydown', function(event) {
+                        if (event.code === "Enter") {
+                                document.getElementById('submitClusterName').click();
+                            }
+                    });
+                }, 0);
+
+                // populate datalist with existing cluster names
+                var clusterNames = document.getElementById('clusterNames');
+                clusterNames.innerHTML = "";
+                for(cluster of clusters){
+                    var option = document.createElement('option');
+                    option.value = cluster;
+                    clusterNames.appendChild(option);
                 }
-                for (node of nodes) {
-                    data.nodes[node - 1].cluster = clusterName;
+                document.getElementById('cancelClusterName').onclick = function() {
+                    document.getElementById('myModal').style.display = "none";
                 }
-                // press cluster button
-                document.getElementById("clusterButton").click();
+                document.getElementById('submitClusterName').onclick = function() {
+                    var clusterName = document.getElementById('clusterName').value;
+                    document.getElementById('myModal').style.display = "none";
+                    if (clusterName == null || clusterName == "") {
+                    return;
+                    }
+                    for (node of nodes) {
+                        data.nodes[node - 1].cluster = clusterName;
+                    }
+                    // press cluster button
+                    document.getElementById("clusterButton").click();
+                }
         }
         });
     </script>

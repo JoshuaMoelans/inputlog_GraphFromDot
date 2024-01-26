@@ -321,14 +321,14 @@
                         if (network.isCluster(nodeId) === false) {
                             var node = network.body.nodes[nodeId];
                             selectedSize += node.shape.radius;
-                            html += `<p>${node.options.title}</p>`;
+                            html += `<p>🌿${node.options.title}</p>`;
                         } else {
                             var cluster = network.body.nodes[nodeId];
-                            html += `<p>${cluster.options.title}</p>`;
+                            html += `<p>🌳${cluster.options.title}</p>`;
                             html += `<p style="margin-left: 15px;"><b>Category contains links:</b></p>`;
                             for(let node in cluster.containedNodes){  // loop over contained nodes
                                 selectedSize += cluster.containedNodes[node].shape.radius;
-                                html += `<p style="margin-left: 30px;">${cluster.containedNodes[node].options.title}</p>`; // add label to info box (TODO maybe fix style setting?)
+                                html += `<p style="margin-left: 30px;">🌿${cluster.containedNodes[node].options.title}</p>`; // add label to info box (TODO maybe fix style setting?)
                             }
                         }
                     }
@@ -358,7 +358,7 @@
             function createClusters() {
                 updateInfoBox([]) // clear info box
                 // Cluster nodes based on DOT-defined clusters
-                const clusters = data.nodes.reduce((acc, node) => {
+                const new_clusters = data.nodes.reduce((acc, node) => { // create local variable new_clusters
                     if (node.cluster) {
                         if (!acc[node.cluster]) {
                             acc[node.cluster] = [];
@@ -369,14 +369,13 @@
                 }, {});
 
                 // Return if no clusters are defined (so graph doesn't move around)
-                var clusterCount = Object.entries(clusters).length
+                var clusterCount = Object.entries(new_clusters).length
                 if (clusterCount === 0) return;
-
                 network = createNetwork();
 
                 // Generate colors for each label
                 var colors = generateColors(clusterCount) // TODO these could be pre-defined as well; currently they are deterministically 'random'
-                for (const [label, nodes] of Object.entries(clusters)) {
+                for (const [label, nodes] of Object.entries(new_clusters)) {
                     var relativeClusterSize = nodes.reduce((acc, node) => {
                         return acc + data.nodes[node - 1].size;
                     }, 0)/totalSize;
@@ -402,6 +401,11 @@
                         },
                     };
                     network.cluster(clusterOptionsByData);
+                }
+
+                clusters.clear();  // clear existing clusters set
+                for(cluster of Object.keys(new_clusters)){
+                    clusters.add(cluster);  // add new clusters to set
                 }
             }
             
@@ -515,7 +519,8 @@
                 }
             });
             function createNewCluster(nodes) {
-                if (nodes.length <= 1){
+                // check if at least 2 nodes are selected, OR if a cluster is selected
+                if (nodes.length <= 1 && network.isCluster(nodes[0]) === false){
                     alert("Please select at least 2 nodes to create a cluster.");
                     return;
                 };
@@ -549,8 +554,19 @@
                     if (clusterName == null || clusterName == "") {
                     return;
                     }
+                    clusters.add(clusterName);
                     for (node of nodes) {
-                        data.nodes[node - 1].cluster = clusterName;
+                        // check if cluster
+                        if(network.isCluster(node) === true){
+                            // get all nodes in cluster
+                            var cluster = network.body.nodes[node];
+                            for(let node in cluster.containedNodes){  // loop over contained nodes
+                                // add cluster name to node
+                                data.nodes[cluster.containedNodes[node].id - 1].cluster = clusterName;
+                            }
+                        }else{
+                            data.nodes[node - 1].cluster = clusterName;
+                        }
                     }
                     // press cluster button
                     document.getElementById("clusterButton").click();

@@ -234,14 +234,14 @@
                         if (network.isCluster(nodeId) === false) {
                             var node = network.body.nodes[nodeId];
                             selectedSize += node.shape.radius;
-                            html += `<p>${node.options.label}</p>`;
+                            html += `<p>${node.options.title}</p>`;
                         } else {
                             var cluster = network.body.nodes[nodeId];
-                            html += `<p>${cluster.options.label}</p>`;
+                            html += `<p>${cluster.options.title}</p>`;
                             html += `<p style="margin-left: 15px;"><b>Category contains links:</b></p>`;
                             for(let node in cluster.containedNodes){  // loop over contained nodes
                                 selectedSize += cluster.containedNodes[node].shape.radius;
-                                html += `<p style="margin-left: 30px;">${cluster.containedNodes[node].options.label}</p>`; // add label to info box (TODO maybe fix style setting?)
+                                html += `<p style="margin-left: 30px;">${cluster.containedNodes[node].options.title}</p>`; // add label to info box (TODO maybe fix style setting?)
                             }
                         }
                     }
@@ -294,6 +294,13 @@
                         return acc + data.nodes[node - 1].size;
                     }, 0)/totalSize;
                     relativeClusterSize = Math.round(relativeClusterSize * 100);
+
+                    var truncatedLabel = label;
+                    var clusterTruncateSize = 10;
+                    if (label.length > clusterTruncateSize) {
+                        truncatedLabel = label.substring(0, clusterTruncateSize) + "...";
+                    }
+
                     var clusterOptionsByData = {
                         joinCondition: function (childOptions) {
                             return childOptions.cluster === label;
@@ -303,7 +310,8 @@
                             borderWidth: 3,
                             shape: "box",
                             color: colors.pop(),
-                            label: `${label} (${relativeClusterSize}%)`,
+                            label: `${truncatedLabel} (${relativeClusterSize}%)`,
+                            title: `${label} (${relativeClusterSize}%)`,
                         },
                     };
                     network.cluster(clusterOptionsByData);
@@ -344,6 +352,13 @@
 
                     nodes[i].color = nodes[i].color || {};
                     nodes[i].color.border = nodes[i].bordercolor || "black";
+
+                    // check if label is too long (over labelTruncateSize characters); if this is the case, truncate it & store full label in title (for use in info box)
+                    nodes[i].title = nodes[i].label;
+                    var labelTruncateSize = 20;
+                    if (nodes[i].label.length > labelTruncateSize) {
+                        nodes[i].label = nodes[i].label.substring(0, labelTruncateSize) + "...";
+                    }
 
                     nodes[i].chosen = {
                         node: function(values, id, selected, hovering) {

@@ -321,21 +321,21 @@
                         console.log(nodeId, network.isCluster(nodeId));
                         if (network.isCluster(nodeId) === false) {
                             var node = network.body.nodes[nodeId];
-                            selectedSize += node.shape.radius;
+                            selectedSize += node.options.size;
                             html += `<p>🌿${node.options.title}</p>`;
                         } else {
                             var cluster = network.body.nodes[nodeId];
                             html += `<p>🌳${cluster.options.title}</p>`;
                             html += `<p style="margin-left: 15px;"><b>Category contains links:</b></p>`;
                             for(let node in cluster.containedNodes){  // loop over contained nodes
-                                selectedSize += cluster.containedNodes[node].shape.radius;
+                                selectedSize += cluster.containedNodes[node].options.size;
                                 html += `<p style="margin-left: 30px;">🌿${cluster.containedNodes[node].options.title}</p>`; // add label to info box (TODO maybe fix style setting?)
                             }
                         }
                     }
                     html += "</div>";
                     info.innerHTML = html;
-                    var selectedPercentage = Math.round(selectedSize / totalSize * 100);
+                    var selectedPercentage = Math.round(selectedSize);
                     // add horizontal line
                     info.innerHTML += `<hr style="margin-top: 1em; margin-bottom: 0.5em;">`;
                     info.innerHTML += `<p><b>Relative Time Spent:</b> ${selectedPercentage}%</p>`;
@@ -348,6 +348,13 @@
                 updateInfoBox([]) // clear info box
                 for (node of nodes) {
                     if (network.isCluster(node) === true) {
+                        // loop over all nodes in cluster and colour them the same as the cluster node
+                        var cluster = network.body.nodes[node];
+                        for(let child_node in cluster.containedNodes){  // loop over contained nodes
+                            // set color of node to color of cluster
+                            // TODO figure out why this only works after clustering at least twice (sometimes even more needed?) feels funky A.F.
+                            cluster.containedNodes[child_node].options.color.background = cluster.options.color.background;
+                        }
                         network.openCluster(node); // TODO think we lose information on edge labels here, should be fixed
                         // reproduce behaviour by clustering the example network, then clicking on a cluster; all outgoing
                         // edges' labels are lost. Also, the to-cluster edge label is not correct (values don't seem to be added)
@@ -379,8 +386,8 @@
                 for (const [label, nodes] of Object.entries(new_clusters)) {
                     var relativeClusterSize = nodes.reduce((acc, node) => {
                         return acc + data.nodes[node - 1].size;
-                    }, 0)/totalSize;
-                    relativeClusterSize = Math.round(relativeClusterSize * 100);
+                    }, 0);
+                    relativeClusterSize = Math.round(relativeClusterSize);
 
                     var truncatedLabel = label;
                     var clusterTruncateSize = 10;
@@ -395,10 +402,11 @@
                         clusterNodeProperties: {
                             id: "cluster:" + label,
                             borderWidth: 3,
-                            shape: "box",
+                            shape: "dot",
                             color: colors.pop(),
-                            label: `${truncatedLabel} (${relativeClusterSize}%)`,
+                            label: `🌳${truncatedLabel}\n(${relativeClusterSize}%)`,
                             title: `${label} (${relativeClusterSize}%)`,
+                            size: relativeClusterSize,
                         },
                     };
                     network.cluster(clusterOptionsByData);
@@ -437,7 +445,6 @@
                     // Rename width to size (use 5 if no width is defined)
                     nodes[i].size = nodes[i].width || 5;
                     totalSize += nodes[i].size;
-                    delete nodes[i].width;
 
                     nodes[i].shape = "dot";
                     nodes[i].fixed = {x: false, y: false};
@@ -462,6 +469,10 @@
                         }
                     }
                 }
+                nodes.forEach(element => {
+                    element.size = 100*(element.size/totalSize);
+                    element.label = element.label + " (" + Math.round(element.size) + "%)";
+                });
                 console.log(totalSize)
             }
 

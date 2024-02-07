@@ -297,7 +297,7 @@
                 });
 
                 network.on("dragStart", function (params) {
-                    updateInfoBox(params.nodes);
+                    //updateInfoBox(params.nodes);
                 });
 
                 // Ensure nodes are fixed after dragging
@@ -321,7 +321,7 @@
                         console.log(nodeId, network.isCluster(nodeId));
                         if (network.isCluster(nodeId) === false) {
                             var node = network.body.nodes[nodeId];
-                            selectedSize += node.options.size;
+                            selectedSize += node.options.width;
                             html += `<p>🌿${node.options.title}</p>`;
                         } else {
                             var cluster = network.body.nodes[nodeId];
@@ -439,12 +439,10 @@
             }
 
             function modifyNodes(nodes) {
-                totalSize = 0;
                 // Modify nodes based on DOT-defined node attributes
                 for (var i = 0; i < nodes.length; i++) {
-                    // Rename width to size (use 5 if no width is defined)
-                    nodes[i].size = nodes[i].width || 5;
-                    totalSize += nodes[i].size;
+                    // Rename width to size
+                    nodes[i].size = nodes[i].width;
 
                     nodes[i].shape = "dot";
                     nodes[i].fixed = {x: false, y: false};
@@ -470,10 +468,10 @@
                     }
                 }
                 nodes.forEach(element => {
-                    element.size = 100*(element.size/totalSize);
                     element.label = element.label + "\n(" + Math.round(element.size) + "%)";
+                    element.width = element.size;
+                    element.size = Math.max(3, element.size); // minimum size for nodes
                 });
-                console.log(totalSize)
             }
 
             function generateColors(numColors) {
@@ -511,7 +509,7 @@
                         console.log(node);
                     }
                 }
-                if(event.code === "KeyC") {
+                if(event.code === "KeyC" && !event.ctrlKey) {
                     // don't create cluster if modal is open
                     var modal = document.getElementById('myModal');
                     if (modal.style.display === "block") {

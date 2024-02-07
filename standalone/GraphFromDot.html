@@ -423,6 +423,9 @@
                 // Convert DOT string to network
                 var data = vis.parseDOTNetwork(dotString);
                 modifyEdges(data.edges);
+                // set default colour and label for first node; SHOULD ALWAYS BE THE MAIN DOCUMENT coming from Inputlog
+                data.nodes[0].color = "#1856b9";
+                data.nodes[0].label = "Your Document";
                 modifyNodes(data.nodes);
                 var network = createNetwork();
 
@@ -471,7 +474,7 @@
                 }
                 nodes.forEach(element => {
                     element.size = 100*(element.size/totalSize);
-                    element.label = element.label + " (" + Math.round(element.size) + "%)";
+                    element.label = element.label + "\n(" + Math.round(element.size) + "%)";
                 });
                 console.log(totalSize)
             }

@@ -38,7 +38,6 @@
         input {
             color: #357edd;
             border: 3px solid #357edd;
-            min-width: 6rem;
             border-radius: 0.5rem;
             font-size: 0.8em;
             min-height: 2rem;
@@ -121,11 +120,26 @@
             background-color: #f5532b;
             color: white;
         }
-        
+        #colorPickerContainer {
+            position: fixed;
+            z-index: 1;
+            display: flex;
+            align-items: center;
+        }
+
+        #nodeColor {
+            position: relative;
+            z-index: 1;
+            width: 25px;
+            border: 0;
+        }
     </style>
 </head>
 <body>
     <div id="page">
+        <div id="colorPickerContainer" style="display: none;">
+            <input type="color" id="nodeColor" name="nodeColor" value="#ff0000" style="display: none;">
+        </div>
         <div id="mynetwork"></div>
         <div id="info">
             <p><b>Controls</b></p>
@@ -136,7 +150,7 @@
                 <li><b>left-click</b> on empty space to unselect node(s)/cluster(s)</li>
                 <li><b>ctrl+left-click</b> to select multiple nodes/clusters</li>
                 <li><b>'c'</b> to create cluster from selection (overwrites existing clustering for selected nodes)</li>
-                <li><b>double-left-click</b> to open cluster</li>
+                <li><b>double-left-click</b> to open cluster or change node color</li>
                 <li><b>right-click</b> to save/copy image of current graph</li>
                 <li><b>space</b> to toggle node fixed position (<span style="color: rgba(247, 51, 51, 0.918);"><b>experimental!</b></span>)</li>
             </ul>
@@ -294,10 +308,13 @@
 
                 network.on("deselectNode", function (params) {
                     updateInfoBox(params.nodes);
+                    var colorPickerContainer = document.getElementById('colorPickerContainer');
+                    colorPickerContainer.style.display = 'none';
                 });
 
                 network.on("dragStart", function (params) {
-                    //updateInfoBox(params.nodes);
+                    var colorPickerContainer = document.getElementById('colorPickerContainer');
+                    colorPickerContainer.style.display = 'none';
                 });
 
                 // Ensure nodes are fixed after dragging
@@ -308,7 +325,6 @@
                         network.body.data.nodes[nodeId] = node;
                     }
                 })
-
                 return network;
             }
 
@@ -362,9 +378,21 @@
                     }else{
                         // allow user to select node color TODO transfer over to nodes when clustering
                         var node = network.body.nodes[node];
-                        var color = prompt("Please enter a color for the node (plain text or in hex format, e.g. red or #ff0000):", node.options.color.background);
-                        if (color != null) {
-                            node.options.color.background = color;
+                        document.getElementById('nodeColor').value = node.options.color.background;
+                        var colorPickerContainer = document.getElementById('colorPickerContainer');
+                        colorPickerContainer.style.left = event.clientX + 10 + 'px';
+                        colorPickerContainer.style.top = event.clientY + 5 +'px';
+                        colorPickerContainer.style.display = 'flex';
+
+                        var colorInput = document.getElementById('nodeColor');
+                        colorInput.style.display = 'block';
+                        colorInput.focus();
+                        colorInput.click();
+
+                        colorInput.onchange = function() {
+                            node.options.color.background = colorInput.value;
+                            colorInput.style.display = 'none';
+                            confirmButton.style.display = 'none';
                         }
                     }
                 }
@@ -533,6 +561,9 @@
                         network.unselectAll();
                         updateInfoBox([]);
                     }
+                    // hide color picker
+                    var colorPickerContainer = document.getElementById('colorPickerContainer');
+                    colorPickerContainer.style.display = 'none';
                 }
             });
             function createNewCluster(nodes) {

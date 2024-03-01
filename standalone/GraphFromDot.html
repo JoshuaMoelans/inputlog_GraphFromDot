@@ -200,6 +200,8 @@
             var buttons = document.getElementById("buttons");
             var originalInfoBoxHTML = document.getElementById('info').innerHTML;
             var clusters = new Set();
+            var dragging = false;
+            var changedNodes = new Map();
             var defaultGraph = "digraph source_graph {\n" +
               "\trankdir=LR;\n" +
               "\tnode [shape=circle style=filled fixedsize=true fontsize=20];\n" +
@@ -313,17 +315,18 @@
                 });
 
                 network.on("dragStart", function (params) {
+                    dragging = true;
                     var colorPickerContainer = document.getElementById('colorPickerContainer');
                     colorPickerContainer.style.display = 'none';
                 });
 
                 // Ensure nodes are fixed after dragging
                 network.on("dragEnd", function (params) {
-                    for (nodeId of network.getSelection().nodes) {
-                        //TODO fix the code below; not sure what it's meant to do
-                        var node = network.body.nodes[nodeId];
-                        network.body.data.nodes[nodeId] = node;
+                    dragging = false;
+                    for (const [nodeId, changes] of changedNodes) {
+                        network.body.data.nodes.update({id: nodeId, fixed: changes.fixed, color: changes.color});
                     }
+                    changedNodes.clear();
                 })
                 return network;
             }
@@ -532,17 +535,23 @@
             document.getElementById("clusterButton").addEventListener("click", createClusters);
             document.getElementById("uploadButton").addEventListener("click", loadDotFile);
             document.addEventListener("keydown", function(event) {
-                if (event.code === "Space") { // TODO figure out why this only updates after another interaction on-screen
+                if (event.code === "Space") { 
+                    //TODO: weird behavior with clusters
                     for (nodeId of network.getSelection().nodes) {
                         var node = network.body.nodes[nodeId];
-                        // TODO figure out why, when dragging a node and then pressing space, the node's 'fixed.x/y' attribute is already set to true?
-                        node.options.fixed.x = !node.options.fixed.x;
-                        node.options.fixed.y = !node.options.fixed.y;
-                        node.options.color = {background: (node.options.fixed.x ? "red" : "white"), border: "black" };
-                        // network.body.nodes.update({id: node.id, fixed: node.fixed, color: node.color}); // TODO nodes is structured differently here
-                        network.body.nodes[nodeId] = node; // TODO this is a hacky way to update the node, but it works
-                        console.log(node);
+
+                        var fixed = {x: !node.options.fixed.x || dragging, y: !node.options.fixed.y || dragging};
+                        var color = {background: (fixed.x ? "red" : "white"), border: "black"};
+
+                        if (dragging === true) {
+                            changedNodes.set(nodeId, {fixed: fixed, color: color});
+                            console.log(changedNodes)
+                        } else {
+                            network.body.data.nodes.update({id: node.id, fixed: fixed, color: color}); // TODO nodes is structured differently here
+                        }
                     }
+                    // Prevents space from clicking buttons when tabbing accidentally
+                    event.preventDefault();
                 }
                 if(event.code === "KeyC" && !event.ctrlKey) {
                     // don't create cluster if modal is open

@@ -190,8 +190,13 @@
                 },
                 nodes: {
                     widthConstraint: {
-                    maximum: 200,
+                        maximum: 200
+                    },
                 },
+                edges: {
+                    color: {
+                        inherit: false
+                    }
                 }
             };
             var page = document.getElementById("page");
@@ -302,6 +307,7 @@
                 var network = new vis.Network(container, data, options);
                 network.on("selectNode", function (params) {
                     updateInfoBox(params.nodes);
+                    console.log(network.body.nodes)
                 });
 
                 network.on("doubleClick", function (params) {
@@ -541,7 +547,7 @@
                         var node = network.body.nodes[nodeId];
 
                         var fixed = {x: !node.options.fixed.x || dragging, y: !node.options.fixed.y || dragging};
-                        var color = {background: (fixed.x ? "red" : "white"), border: "black"};
+                        var color = {background: node.options.color.background, border: (fixed.x ? "red" : "black")};
 
                         if (dragging === true) {
                             changedNodes.set(nodeId, {fixed: fixed, color: color});

@@ -5,6 +5,7 @@
     <title>Network</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis.min.css" type="text/css">
     <script type="text/javascript" src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
     <style type="text/css">
         #mynetwork {
             width: 600px;
@@ -157,6 +158,7 @@
         </div>
         <div id="buttons">
             <input type="button" id="uploadButton" value="Upload .gv file">
+            <input type="button" id="saveButton" value="Save as .gv file">
             <input type="button" id="clusterButton" value="Cluster nodes">
         </div>
         <div id="myModal" class="modal">
@@ -212,7 +214,7 @@
               "\tnode [shape=circle style=filled fixedsize=true fontsize=20];\n" +
               "\tsize=\"15\";\n" +
               "\n" +
-              "\tnode [width=35  fillcolor=#1856b9 bordercolor=black label=\"Your Document\"] 1\n" +
+              "\tnode [width=35 fillcolor=#1856b9 bordercolor=black label=\"Your Document\"] 1\n" +
               "\tnode [width=3 fillcolor=white bordercolor=black label=\"TASKBAR\" cluster=\"SYSTEM\"] 2\n" +
               "\tnode [width=1 fillcolor=white bordercolor=black label=\"Untitled - Google Chrome\" cluster=\"GOOGLE\"] 3\n" +
               "\tnode [width=0 fillcolor=white bordercolor=black label=\"Google - Google Chrome\" cluster=\"GOOGLE\"] 4\n" +
@@ -303,11 +305,41 @@
                 input.click();
             }
 
+            function saveDotFile() {
+                // Get graph data from vis.js
+                const nodes = network.body.data.nodes._data;
+                const edges = network.body.data.edges._data;
+                
+                // Build DOT string
+                let dotString = 'graph myGraph {\n';
+                dotString += "\trankdir=LR;\n";
+                dotString += "\tnode [shape=circle style=filled fixedsize=true fontsize=20];\n";
+                dotString += "\tsize=\"15\";\n\n";
+
+                nodes.forEach(node => {
+                    console.log(node);
+                    var [label, weight] = node.label.split("\n");
+                    weight = weight.replace("(", "").replace(")", "").replace("%", "");
+                    clusterInfo = node.cluster ? ` cluster="${node.cluster}"` : "";
+                    dotString += `\tnode [width=${weight} fillcolor=${node.color.background} bordercolor=${node.color.border} label="${label}"${clusterInfo}] ${node.id};\n`;
+                });
+                dotString += '\n';
+
+                edges.forEach(edge => {
+                    dotString += `\t${edge.from} -> ${edge.to} [label="${edge.label}" penwidth=${edge.label}];\n`;
+                });
+                dotString += '}';
+
+                var blob = new Blob([dotString], {type: "text/plain;charset=utf-8"});
+                saveAs(blob, "network.gv");
+            }
+
             function createNetwork() {
                 var network = new vis.Network(container, data, options);
                 network.on("selectNode", function (params) {
                     updateInfoBox(params.nodes);
                     console.log(network.body.nodes)
+                    console.log(network.getSelection().nodes)
                 });
 
                 network.on("doubleClick", function (params) {
@@ -378,13 +410,13 @@
                         for(let child_node in cluster.containedNodes){  // loop over contained nodes
                             // set color of node to color of cluster
                             // TODO figure out why this only works after clustering at least twice (sometimes even more needed?) feels funky A.F.
-                            cluster.containedNodes[child_node].options.color.background = cluster.options.color.background;
+                            network.body.data.nodes.update({id: cluster.containedNodes[child_node].id, color: {background: cluster.options.color.background}});
                         }
                         network.openCluster(node); // TODO think we lose information on edge labels here, should be fixed
                         // reproduce behaviour by clustering the example network, then clicking on a cluster; all outgoing
                         // edges' labels are lost. Also, the to-cluster edge label is not correct (values don't seem to be added)
                         // we should have at least a value of 7 from MainDoc to SYSTEM but it says 3 (the number of nodes within the cluster our MainDoc node has an edge to)
-                    }else{
+                    } else {
                         // allow user to select node color TODO transfer over to nodes when clustering
                         var node = network.body.nodes[node];
                         document.getElementById('nodeColor').value = node.options.color.background;
@@ -540,12 +572,13 @@
             // Event listeners
             document.getElementById("clusterButton").addEventListener("click", createClusters);
             document.getElementById("uploadButton").addEventListener("click", loadDotFile);
+            document.getElementById("saveButton").addEventListener("click", saveDotFile);
             document.addEventListener("keydown", function(event) {
                 if (event.code === "Space") { 
                     //TODO: weird behavior with clusters
                     for (nodeId of network.getSelection().nodes) {
                         var node = network.body.nodes[nodeId];
-
+                        console.log(node)
                         var fixed = {x: !node.options.fixed.x || dragging, y: !node.options.fixed.y || dragging};
                         var color = {background: node.options.color.background, border: (fixed.x ? "red" : "black")};
 

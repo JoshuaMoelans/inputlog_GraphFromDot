@@ -25,10 +25,32 @@
             border-radius: 0.5rem;
             font-size: 0.8em;
             font-family: sans-serif;
-            max-width: 300px;
+            height: 300px;
+            overflow-y: auto;
+            width: 300px;
             overflow-wrap: break-word;
             word-wrap: break-word;
         }
+
+        /* For Chrome, Safari, and Opera */
+        #info::-webkit-scrollbar {
+            width: 10px;
+        }
+
+        #info::-webkit-scrollbar-track {
+            background: #69a7f7d3;
+
+        }
+
+        #info::-webkit-scrollbar-thumb {
+            background: #357edd;
+
+        }
+
+        #info::-webkit-scrollbar-thumb:hover {
+            background: #357edd;
+        }
+
         p {
             line-height: 12px;
             margin-bottom: -0.5em;
@@ -370,7 +392,7 @@
             }
 
             function updateInfoBox(nodes) {
-                var html = "<p><b>Selected Source Category:</b><p>";
+                var html = "<p><b>Selected Source Categories:</b><p>";
                 html += "<div id=\"selected_nodes\">";
                 if (nodes.length > 0) {
                     var selectedSize = 0;

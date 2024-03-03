@@ -200,6 +200,7 @@
     <script>
         document.addEventListener("DOMContentLoaded", function () {
             var network, data;
+            var nodeDict;
             var totalSize;
             var selectedNode;
             var options = {
@@ -482,7 +483,7 @@
                 var colors = generateColors(clusterCount) // TODO these could be pre-defined as well; currently they are deterministically 'random'
                 for (const [label, nodes] of Object.entries(new_clusters)) {
                     var relativeClusterSize = nodes.reduce((acc, node) => {
-                        return acc + data.nodes[node - 1].size;
+                        return acc + nodeDict[node].width;
                     }, 0);
                     relativeClusterSize = Math.round(relativeClusterSize);
 
@@ -522,7 +523,6 @@
                 modifyEdges(data.edges);
                 modifyNodes(data.nodes);
                 var network = createNetwork();
-
                 return [network, data];
             }
 
@@ -536,6 +536,7 @@
             }
 
             function modifyNodes(nodes) {
+                nodeDict = {};
                 // Modify nodes based on DOT-defined node attributes
                 for (var i = 0; i < nodes.length; i++) {
                     // Rename width to size
@@ -569,6 +570,10 @@
                     element.width = element.size;
                     element.size = Math.max(3, element.size); // minimum size for nodes
                 });
+                // loop over nodes and add to newnodedict based on id
+                for (var i = 0; i < nodes.length; i++) {
+                    nodeDict[nodes[i].id] = nodes[i];
+                }
             }
 
             function generateColors(numColors) {
@@ -682,7 +687,7 @@
                                 data.nodes[cluster.containedNodes[node].id - 1].cluster = clusterName;
                             }
                         }else{
-                            data.nodes[node - 1].cluster = clusterName;
+                            data.nodes[node - 1].cluster = clusterName; // TODO CHECK INDEX MATCHING! 
                         }
                     }
                     // press cluster button

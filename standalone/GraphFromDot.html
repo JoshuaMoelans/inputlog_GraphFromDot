@@ -333,17 +333,16 @@
                 const edges = network.body.data.edges._data;
                 
                 // Build DOT string
-                let dotString = 'graph myGraph {\n';
+                let dotString = 'digraph myGraph {\n';
                 dotString += "\trankdir=LR;\n";
                 dotString += "\tnode [shape=circle style=filled fixedsize=true fontsize=20];\n";
                 dotString += "\tsize=\"15\";\n\n";
 
                 nodes.forEach(node => {
                     console.log(node);
-                    var [label, weight] = node.label.split("\n");
-                    weight = weight.replace("(", "").replace(")", "").replace("%", "");
+                    var [label, weight] = [node.title, node.width]; // use title as stored label (actual label has been truncated) and width as weight
                     clusterInfo = node.cluster ? ` cluster="${node.cluster}"` : "";
-                    dotString += `\tnode [width=${weight} fillcolor=${node.color.background} bordercolor=${node.color.border} label="${label}"${clusterInfo}] ${node.id};\n`;
+                    dotString += `\tnode [width=${weight} fillcolor=\"${node.color.background}\" bordercolor=${node.color.border} label="${label}"${clusterInfo}] ${node.id};\n`;
                 });
                 dotString += '\n';
 

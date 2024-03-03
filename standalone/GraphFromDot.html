@@ -413,11 +413,12 @@
                         }
                     }
                     html += "</div>";
-                    info.innerHTML = html;
+                    // build actual info box innerHTML
                     var selectedPercentage = Math.round(selectedSize);
-                    // add horizontal line
+                    info.innerHTML = `<p><b>Total Relative Time Spent:</b> ${selectedPercentage}%</p>`; // start with total relative time spent
                     info.innerHTML += `<hr style="margin-top: 1em; margin-bottom: 0.5em;">`;
-                    info.innerHTML += `<p><b>Relative Time Spent:</b> ${selectedPercentage}%</p>`;
+                    info.innerHTML += html;
+                    // add horizontal line
                 } else {
                     info.innerHTML = originalInfoBoxHTML;
                 }

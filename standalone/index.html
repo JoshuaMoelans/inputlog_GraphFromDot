@@ -455,8 +455,8 @@
 
                         colorInput.onchange = function() {
                             node.options.color.background = colorInput.value;
+                            data.nodes[node.id - 1].color.background = colorInput.value;
                             colorInput.style.display = 'none';
-                            confirmButton.style.display = 'none';
                         }
                     }
                 }

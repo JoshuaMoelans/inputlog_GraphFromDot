@@ -505,7 +505,8 @@
                             color: colors.pop(),
                             label: `🌳${truncatedLabel}\n(${relativeClusterSize}%)`,
                             title: `${label} (${relativeClusterSize}%)`,
-                            size: relativeClusterSize,
+                            size: Math.max(relativeClusterSize, 3), // minimum size for nodes
+                            width: relativeClusterSize
                         },
                     };
                     network.cluster(clusterOptionsByData);

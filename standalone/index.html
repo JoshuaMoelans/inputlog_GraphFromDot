@@ -342,7 +342,7 @@
                 nodes.forEach(node => {
                     console.log(node);
                     var [label, weight] = [node.title, node.width]; // use title as stored label (actual label has been truncated) and width as weight
-                    clusterInfo = node.cluster ? ` cluster="${node.cluster}"` : "";
+                    clusterInfo = nodeDict[node.id].cluster ? ` cluster="${nodeDict[node.id].cluster}"` : "";
                     dotString += `\tnode [width=${weight} fillcolor=\"${node.color.background}\" bordercolor=${node.color.border} label="${label}"${clusterInfo}] ${node.id};\n`;
                 });
                 dotString += '\n';
@@ -685,10 +685,10 @@
                             var cluster = network.body.nodes[node];
                             for(let node in cluster.containedNodes){  // loop over contained nodes
                                 // add cluster name to node
-                                data.nodes[cluster.containedNodes[node].id - 1].cluster = clusterName;
+                                nodeDict[node].cluster = clusterName;
                             }
                         }else{
-                            data.nodes[node - 1].cluster = clusterName; // TODO CHECK INDEX MATCHING! 
+                            nodeDict[node].cluster = clusterName; // TODO CHECK INDEX MATCHING! 
                         }
                     }
                     // press cluster button

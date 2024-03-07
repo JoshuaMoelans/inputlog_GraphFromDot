@@ -8,46 +8,79 @@
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
     <style type="text/css">
         #mynetwork {
-            width: 600px;
-            height: 600px;
             border: 1px solid #357edd;
             border-radius: 0.5rem;
             background-color: rgba(255, 255, 255, 0.8);
         }
-        #info {
-            position: absolute;
-            top: 1vw;
-            left: 4vw;
+
+        .infobox {
+            top: 3vw;
             border: 3px solid #357edd;
             background-color: rgba(255, 255, 255, 0.8);
             padding: 10px;
             z-index: 1;
             border-radius: 0.5rem;
-            font-size: 0.8em;
+            font-size: 0.7em;
             font-family: sans-serif;
-            height: 300px;
+        }
+
+        #tasks {
+            right: 3vw;
+            position: absolute;
+            min-height: 10px;
+            max-height: 200px;
+            min-width: 20px;
+            max-width: 200px;
             overflow-y: auto;
-            width: 300px;
             overflow-wrap: break-word;
             word-wrap: break-word;
         }
 
+        #info {
+            left: 4vw;
+            position: absolute;
+            max-height: 300px;
+            min-height: 10px;
+            max-width: 300px;
+            min-width: 20px;
+            overflow-y: auto;
+            overflow-wrap: break-word;
+            word-wrap: break-word;
+        }
+
+        .close-button {
+            position: absolute;
+            right: 10px;
+            top: 3px;
+            background: none;
+            border: none;
+            font-size: 15px;
+            color: #357edd;
+            cursor: pointer;
+        }
+
+        #info-close-button {
+            left: 10px;
+            right: auto;
+            cursor: pointer;
+        }
+
         /* For Chrome, Safari, and Opera */
-        #info::-webkit-scrollbar {
+        .infobox::-webkit-scrollbar {
             width: 10px;
         }
 
-        #info::-webkit-scrollbar-track {
+        .infobox::-webkit-scrollbar-track {
             background: #69a7f7d3;
 
         }
 
-        #info::-webkit-scrollbar-thumb {
+        .infobox::-webkit-scrollbar-thumb {
             background: #357edd;
 
         }
 
-        #info::-webkit-scrollbar-thumb:hover {
+        .infobox::-webkit-scrollbar-thumb:hover {
             background: #357edd;
         }
 
@@ -156,27 +189,60 @@
             width: 25px;
             border: 0;
         }
+
+        .title {
+            width: 100%;
+            text-align: center;
+            padding: 5px 0;
+        }
+
+        .title h1 {
+            margin: 0;
+            font-size: 24px;
+            font-family: sans-serif;
+        }
     </style>
 </head>
 <body>
+    <div class="title">
+        <h1>Source network graph (dynamic)</h1>
+    </div>
     <div id="page">
         <div id="colorPickerContainer" style="display: none;">
             <input type="color" id="nodeColor" name="nodeColor" value="#ff0000" style="display: none;">
         </div>
         <div id="mynetwork"></div>
-        <div id="info">
-            <p><b>Controls</b></p>
-            <p></p>
-            <ul>
-                <li><b>left-click</b> to select node/cluster</li>
-                <li><b>esc</b> to unselect node(s)/cluster</li>
-                <li><b>left-click</b> on empty space to unselect node(s)/cluster(s)</li>
-                <li><b>ctrl+left-click</b> to select multiple nodes/clusters</li>
-                <li><b>'c'</b> to create cluster from selection (overwrites existing clustering for selected nodes)</li>
-                <li><b>double-left-click</b> to open cluster or change node color</li>
-                <li><b>right-click</b> to save/copy image of current graph</li>
-                <li><b>space</b> to toggle node fixed position (<span style="color: rgba(247, 51, 51, 0.918);"><b>experimental!</b></span>)</li>
-            </ul>
+        <div id="info" class="infobox">
+            <button class="close-button" id="info-close-button">x</button>
+            <div id="infocontent">
+                <p><b>Legend:</b></p>
+                <p> Each circle is a node; <br> a group of circles is a cluster</p>
+                <p><b>Activities:</b></p>
+                <p>Select node: <b>left-click node</b></p>
+                <p>Select multiple nodes: <b>ctrl+left-click nodes</b></p>
+                <p>Group selection of nodes: press <b>'c'</b> + name the cluster</p>
+                <P>Open cluster: <b>double click</b> cluster</P>
+                <p>Unselect node/cluster(s): <b>left click</b> on empty page</p>
+                <p>Untie the cluster: <b>double left-click</b> cluster (regroup them via the cluster nodes button)</p>
+                <br>
+                <p>Change colour of node: <b>double left-click</b> on node</p>
+                <p>Fixate position of node: press <b>space bar</b> when dragging to fixate in-place</p>
+                <p>Save image: <b>right-click</b> current network graph</p>
+            </div>
+        </div>
+        <div id="tasks" class="infobox">
+            <button class="close-button" id="tasks-close-button">x</button>
+            <div id="taskscontent">
+                <p><b>Cluster additional source types:</b></p>
+                <ul>
+                    <li>Content</li>
+                    <li>Spelling</li>
+                    <li>Formulation</li>
+                    <li>Task</li>
+                    <li>Unrelated</li>
+                    <li>Other, provide your own typology</li>
+                </ul>
+            </div> 
         </div>
         <div id="buttons">
             <input type="button" id="uploadButton" value="Upload .gv file">
@@ -226,9 +292,9 @@
             };
             var page = document.getElementById("page");
             var container = document.getElementById("mynetwork");
-            var info = document.getElementById("info");
+            var info = document.getElementById("infocontent");
             var buttons = document.getElementById("buttons");
-            var originalInfoBoxHTML = document.getElementById('info').innerHTML;
+            var originalInfoBoxHTML = document.getElementById('infocontent').innerHTML;
             var clusters = new Set();
             var dragging = false;
             var changedNodes = new Map();
@@ -295,7 +361,7 @@
                 // Set up initial network settings
                 page.style.marginLeft = window.innerWidth * 0.03 + "px";
                 container.style.width = window.innerWidth * 0.94 + "px";
-                container.style.height = window.innerHeight * 0.9 + "px";
+                container.style.height = window.innerHeight * 0.85 + "px";
                 buttons.style.marginTop = window.innerHeight * 0.01 + "px";
 
                 [network, data] = dotToNetwork(defaultGraph, options);
@@ -696,6 +762,30 @@
                     document.getElementById("clusterButton").click();
                 }
         }
+        });
+
+        document.querySelector('#tasks-close-button').addEventListener('click', function() {
+            var infobox = document.querySelector('#taskscontent');
+            var closeButton = document.querySelector('#tasks-close-button');
+            if (infobox.style.display === 'none') {
+                infobox.style.display = 'block';
+                closeButton.textContent = 'x';
+            } else {
+                infobox.style.display = 'none';
+                closeButton.textContent = 'o';
+            }
+        });
+
+        document.querySelector('#info-close-button').addEventListener('click', function() {
+            var infobox = document.querySelector('#infocontent');
+            var closeButton = document.querySelector('#info-close-button');
+            if (infobox.style.display === 'none') {
+                infobox.style.display = 'block';
+                closeButton.textContent = 'x';
+            } else {
+                infobox.style.display = 'none';
+                closeButton.textContent = 'o';
+            }
         });
     </script>
 </body>

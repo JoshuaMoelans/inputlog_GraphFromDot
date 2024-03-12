@@ -1,0 +1,194 @@
+#mynetwork {
+    border: 1px solid #357edd;
+    border-radius: 0.5rem;
+    background-color: rgba(255, 255, 255, 0.8);
+}
+
+.infobox {
+    top: 3vw;
+    border: 3px solid #357edd;
+    background-color: rgba(255, 255, 255, 0.8);
+    padding: 10px;
+    z-index: 1;
+    border-radius: 0.5rem;
+    font-size: 0.7em;
+    font-family: sans-serif;
+}
+
+#tasks {
+    right: 3vw;
+    position: absolute;
+    min-height: 10px;
+    max-height: 200px;
+    min-width: 20px;
+    max-width: 200px;
+    overflow-y: auto;
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+}
+
+#info {
+    left: 4vw;
+    position: absolute;
+    max-height: 300px;
+    min-height: 10px;
+    max-width: 300px;
+    min-width: 20px;
+    overflow-y: auto;
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+}
+
+.close-button {
+    position: absolute;
+    right: 10px;
+    top: 3px;
+    background: none;
+    border: none;
+    font-size: 15px;
+    color: #357edd;
+    cursor: pointer;
+}
+
+#info-close-button {
+    left: 10px;
+    right: auto;
+    cursor: pointer;
+}
+
+/* For Chrome, Safari, and Opera */
+.infobox::-webkit-scrollbar {
+    width: 10px;
+}
+
+.infobox::-webkit-scrollbar-track {
+    background: #69a7f7d3;
+
+}
+
+.infobox::-webkit-scrollbar-thumb {
+    background: #357edd;
+
+}
+
+.infobox::-webkit-scrollbar-thumb:hover {
+    background: #357edd;
+}
+
+p {
+    line-height: 12px;
+    margin-bottom: -0.5em;
+}
+p:last-of-type {
+    margin-bottom: 1px;
+}
+input {
+    color: #357edd;
+    border: 3px solid #357edd;
+    border-radius: 0.5rem;
+    font-size: 0.8em;
+    min-height: 2rem;
+}
+input:hover {
+    background-color: #357edd;
+    color: white;
+}
+
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0,0,0,0.4);
+}
+
+.modal-content {
+    justify-content: center;
+    display: flex;
+    flex-direction: column;
+    background-color: #fefefe;
+    margin: 15% auto;
+    padding: 20px;
+    border: 3px solid #357edd;
+    border-radius: 0.5rem;
+    width: 25%;
+    font-family: sans-serif;
+    border-radius: 0.5rem;
+    align-items: center;
+}
+
+.modal button {
+    color: #357edd;
+    border: 3px solid #357edd;
+    min-width: 6rem;
+    border-radius: 0.5rem;
+    font-size: 0.8em;
+    min-height: 2rem;
+    margin-top: 10px;
+}
+
+#clusterName{
+    color: #357edd;
+    min-width: 6rem;
+    border: 1px solid black;
+    border-radius: 0.5rem;
+    font-size: 0.8em;
+    min-height: 2rem;
+    margin-top: 10px;
+    margin-right: 15px;
+    margin-left: 10px;
+    padding-left: 10px;
+}
+
+#clusterName:hover {
+    background-color: white;
+}
+
+#submitClusterName{
+    margin-left: 10px;
+    margin-right: 10px;
+}
+
+#submitClusterName:hover {
+    background-color: #357edd;
+    color: white;
+}
+
+#cancelClusterName{
+    margin-left: 10px;
+    margin-right: 10px;
+}
+
+#cancelClusterName:hover {
+    background-color: #f5532b;
+    color: white;
+}
+#colorPickerContainer {
+    position: fixed;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+}
+
+#nodeColor {
+    position: relative;
+    z-index: 1;
+    width: 25px;
+    border: 0;
+}
+
+.title {
+    width: 100%;
+    text-align: center;
+    padding: 5px 0;
+}
+
+.title h1 {
+    margin: 0;
+    font-size: 24px;
+    font-family: sans-serif;
+}

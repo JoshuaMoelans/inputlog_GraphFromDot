@@ -135,8 +135,6 @@ document.addEventListener("DOMContentLoaded", function () {
         var network = new vis.Network(container, data, options);
         network.on("selectNode", function (params) {
             updateInfoBox(params.nodes);
-            console.log(network.body.nodes)
-            console.log(network.getSelection().nodes)
         });
 
         network.on("doubleClick", function (params) {
@@ -160,9 +158,9 @@ document.addEventListener("DOMContentLoaded", function () {
             dragging = false;
             for (const [nodeId, changes] of changedNodes) {
                 if (network.isCluster(nodeId) === true) {
-                    network.clustering.updateClusteredNode(nodeId, {fixed: changes.fixed, color: changes.color});
+                    network.clustering.updateClusteredNode(nodeId, {fixed: changes.fixed, label: changes.label});
                 }else{
-                    network.body.data.nodes.update({id: nodeId, fixed: changes.fixed, color: changes.color});
+                    network.body.data.nodes.update({id: nodeId, fixed: changes.fixed, label: changes.label});
                     }
                 }
             changedNodes.clear();
@@ -385,17 +383,21 @@ document.addEventListener("DOMContentLoaded", function () {
             //TODO: weird behavior with clusters
             for (nodeId of network.getSelection().nodes) {
                 var node = network.body.nodes[nodeId];
-                console.log(node)
                 var fixed = {x: !node.options.fixed.x || dragging, y: !node.options.fixed.y || dragging};
-                var color = {background: node.options.color.background, border: (fixed.x ? "red" : "black")};
+                if (fixed.x === true && fixed.y === true) {
+                    var newlabel = "🔒" + node.options.label;
+                }
+                else {
+                    var newlabel = node.options.label.replace("🔒", "");
+                }
 
                 if (dragging === true) {
-                        changedNodes.set(nodeId, {fixed: fixed, color: color});
+                        changedNodes.set(nodeId, {fixed: fixed, label: newlabel});
                 } else {
                     if (network.isCluster(nodeId) === true) {
-                        network.clustering.updateClusteredNode(nodeId, {fixed: fixed, color: color});
+                        network.clustering.updateClusteredNode(nodeId, {fixed: fixed, label: newlabel});
                     }else{
-                        network.body.data.nodes.update({id: node.id, fixed: fixed, color: color}); // TODO nodes is structured differently here
+                        network.body.data.nodes.update({id: node.id, fixed: fixed, label: newlabel}); // TODO nodes is structured differently here
                     }
                 }
             }

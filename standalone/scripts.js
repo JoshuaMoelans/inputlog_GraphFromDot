@@ -159,8 +159,12 @@ document.addEventListener("DOMContentLoaded", function () {
         network.on("dragEnd", function (params) {
             dragging = false;
             for (const [nodeId, changes] of changedNodes) {
-                network.body.data.nodes.update({id: nodeId, fixed: changes.fixed, color: changes.color});
-            }
+                if (network.isCluster(nodeId) === true) {
+                    network.clustering.updateClusteredNode(nodeId, {fixed: changes.fixed, color: changes.color});
+                }else{
+                    network.body.data.nodes.update({id: nodeId, fixed: changes.fixed, color: changes.color});
+                    }
+                }
             changedNodes.clear();
         })
         return network;
@@ -386,10 +390,13 @@ document.addEventListener("DOMContentLoaded", function () {
                 var color = {background: node.options.color.background, border: (fixed.x ? "red" : "black")};
 
                 if (dragging === true) {
-                    changedNodes.set(nodeId, {fixed: fixed, color: color});
-                    console.log(changedNodes)
+                        changedNodes.set(nodeId, {fixed: fixed, color: color});
                 } else {
-                    network.body.data.nodes.update({id: node.id, fixed: fixed, color: color}); // TODO nodes is structured differently here
+                    if (network.isCluster(nodeId) === true) {
+                        network.clustering.updateClusteredNode(nodeId, {fixed: fixed, color: color});
+                    }else{
+                        network.body.data.nodes.update({id: node.id, fixed: fixed, color: color}); // TODO nodes is structured differently here
+                    }
                 }
             }
             // Prevents space from clicking buttons when tabbing accidentally

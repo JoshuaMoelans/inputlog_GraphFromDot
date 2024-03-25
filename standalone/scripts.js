@@ -174,7 +174,6 @@ document.addEventListener("DOMContentLoaded", function () {
         if (nodes.length > 0) {
             var selectedSize = 0;
             for (nodeId of nodes) {
-                console.log(nodeId, network.isCluster(nodeId));
                 if (network.isCluster(nodeId) === false) {
                     var node = network.body.nodes[nodeId];
                     selectedSize += node.options.width;
@@ -383,6 +382,34 @@ document.addEventListener("DOMContentLoaded", function () {
     document.getElementById("clusterButton").addEventListener("click", createClusters);
     document.getElementById("uploadButton").addEventListener("click", loadDotFile);
     document.getElementById("saveButton").addEventListener("click", saveDotFile);
+
+
+    document.addEventListener('click', function(event) {
+        var contextMenu = document.getElementById('contextMenu');
+        if (event.target !== contextMenu && !contextMenu.contains(event.target)) {
+            contextMenu.style.display = 'none';
+        }
+    });
+
+    document.addEventListener('contextmenu', function(event) {
+        event.preventDefault();
+    
+        var contextMenu = document.getElementById('contextMenu');
+        contextMenu.style.left = event.clientX + 5 + 'px';
+        contextMenu.style.top = event.clientY + 5 + 'px';
+        contextMenu.style.display = 'flex';
+    });
+
+    document.getElementById('createClusterButton').addEventListener('click', function() {
+        createNewCluster(network.getSelection().nodes);
+        document.getElementById('contextMenu').style.display = 'none';
+    });
+    
+    document.getElementById('removeFromClusterButton').addEventListener('click', function() {
+        removeFromClustering();
+        document.getElementById('contextMenu').style.display = 'none';
+    });
+
     document.addEventListener("keydown", function(event) {
         if (event.code === "Space") { 
             for (nodeId of network.getSelection().nodes) {
@@ -437,37 +464,40 @@ document.addEventListener("DOMContentLoaded", function () {
                 return;
             }
             removeFromClustering();
-            updateInfoBox([]);
         }
-    
-    function removeFromClustering(){
-            // loop over selected nodes
-            for (node of network.getSelection().nodes) {
-                // check if cluster
-                if(network.isCluster(node) === true){
-                    // get all nodes in cluster
-                    var cluster = network.body.nodes[node];
-                    for(let node in cluster.containedNodes){  // loop over contained nodes
-                        // remove cluster name from node
-                        nodeDict[node].cluster = undefined;
-                    }
-                    // open cluster
-                    network.openCluster(node);
-                }else{
-                    nodeDict[node].cluster = undefined;
-                    nodeDict[node].color = {background: "#ffffff", border: "#000000"};
-                    network.body.data.nodes.update({id: node, color: {background: "#ffffff", border: "#000000"}});
-                }
-            }
-    }
-
     });
+
+    function removeFromClustering(){
+        updateInfoBox([]);  // clear info box
+        // loop over selected nodes
+        for (node of network.getSelection().nodes) {
+            // check if cluster
+            if(network.isCluster(node) === true){
+                // get all nodes in cluster
+                var cluster = network.body.nodes[node];
+                for(let node in cluster.containedNodes){  // loop over contained nodes
+                    // remove cluster name from node
+                    nodeDict[node].cluster = undefined;
+                }
+                // open cluster
+                network.openCluster(node);
+            }else{
+                if (nodeDict[node].cluster === undefined){ // if node is not in a cluster, return
+                    return;
+                }
+                nodeDict[node].cluster = undefined;
+                nodeDict[node].color = {background: "#ffffff", border: "#000000"};
+                network.body.data.nodes.update({id: node, color: {background: "#ffffff", border: "#000000"}});
+            }
+        }
+}
+
     function createNewCluster(nodes) {
         // check if at least 2 nodes are selected, OR if a cluster is selected
-        if (nodes.length <= 1 && network.isCluster(nodes[0]) === false){
-            alert("Please select at least 2 nodes to create a cluster.");
+        if (nodes.length === 0 || (nodes.length === 1 && !network.isCluster(nodes[0]))){
+            alert("Please select at least 2 nodes to create a cluster, or select a cluster.");
             return;
-        };
+        }
         // show prompt to get cluster name
         document.getElementById('myModal').style.display = "block";
         setTimeout(function() { // prevent C from being typed in cluster name input field

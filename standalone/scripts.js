@@ -329,6 +329,11 @@ document.addEventListener("DOMContentLoaded", function () {
 
             if(nodes[i].cluster){
                 clusters.add(nodes[i].cluster);
+            }else{
+                if (nodes[i].label != "Your Document") { // only add to 'other' cluster if not the main document
+                nodes[i].cluster = "other";
+                clusters.add("other");
+                }
             }
 
             // check if label is too long (over labelTruncateSize characters); if this is the case, truncate it & store full label in title (for use in info box)

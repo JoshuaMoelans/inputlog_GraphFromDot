@@ -385,7 +385,6 @@ document.addEventListener("DOMContentLoaded", function () {
     document.getElementById("saveButton").addEventListener("click", saveDotFile);
     document.addEventListener("keydown", function(event) {
         if (event.code === "Space") { 
-            //TODO: weird behavior with clusters
             for (nodeId of network.getSelection().nodes) {
                 var node = network.body.nodes[nodeId];
                 var fixed = {x: !node.options.fixed.x || dragging, y: !node.options.fixed.y || dragging};
@@ -430,6 +429,38 @@ document.addEventListener("DOMContentLoaded", function () {
             var colorPickerContainer = document.getElementById('colorPickerContainer');
             colorPickerContainer.style.display = 'none';
         }
+
+        if(event.code === "KeyR" && !event.ctrlKey) {
+            // don't remove selected  items from clusters
+            var modal = document.getElementById('myModal');
+            if (modal.style.display === "block") {
+                return;
+            }
+            removeFromClustering();
+            updateInfoBox([]);
+        }
+    
+    function removeFromClustering(){
+            // loop over selected nodes
+            for (node of network.getSelection().nodes) {
+                // check if cluster
+                if(network.isCluster(node) === true){
+                    // get all nodes in cluster
+                    var cluster = network.body.nodes[node];
+                    for(let node in cluster.containedNodes){  // loop over contained nodes
+                        // remove cluster name from node
+                        nodeDict[node].cluster = undefined;
+                    }
+                    // open cluster
+                    network.openCluster(node);
+                }else{
+                    nodeDict[node].cluster = undefined;
+                    nodeDict[node].color = {background: "#ffffff", border: "#000000"};
+                    network.body.data.nodes.update({id: node, color: {background: "#ffffff", border: "#000000"}});
+                }
+            }
+    }
+
     });
     function createNewCluster(nodes) {
         // check if at least 2 nodes are selected, OR if a cluster is selected

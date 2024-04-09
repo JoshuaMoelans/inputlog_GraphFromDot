@@ -180,11 +180,18 @@ document.addEventListener("DOMContentLoaded", function () {
                     html += `<p>🌿${node.options.title}</p>`;
                 } else {
                     var cluster = network.body.nodes[nodeId];
+                    // if in cluster, order the child elements by size
+                    var clusterchildren = cluster.containedNodes;
+                    var clusternodes_ordered = Object.values(clusterchildren);
+                    clusternodes_ordered.sort(function(a, b) {
+                        return b.options.width - a.options.width;
+                    });
                     html += `<p>🌳${cluster.options.title}</p>`;
                     html += `<p style="margin-left: 15px;"><b>Category contains links:</b></p>`;
-                    for(let node in cluster.containedNodes){  // loop over contained nodes
-                        selectedSize += cluster.containedNodes[node].options.width;
-                        html += `<p style="margin-left: 30px;">🌿${cluster.containedNodes[node].options.title}</p>`; // add label to info box (TODO maybe fix style setting?)
+                    for(let node of clusternodes_ordered){  // loop over contained nodes
+                        var nodesize = node.options.width;
+                        selectedSize += nodesize;
+                        html += `<p style="margin-left: 30px;">🌿${node.options.title} (${nodesize}%)</p>`; // add label to info box (TODO maybe fix style setting?)
                     }
                 }
             }

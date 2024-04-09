@@ -176,8 +176,9 @@ document.addEventListener("DOMContentLoaded", function () {
             for (nodeId of nodes) {
                 if (network.isCluster(nodeId) === false) {
                     var node = network.body.nodes[nodeId];
-                    selectedSize += node.options.width;
-                    html += `<p>🌿${node.options.title}</p>`;
+                    var nodesize = node.options.width;
+                    selectedSize += nodesize;
+                    html += `<p>🌿${node.options.title} (${nodesize}%)</p>`;
                 } else {
                     var cluster = network.body.nodes[nodeId];
                     // if in cluster, order the child elements by size

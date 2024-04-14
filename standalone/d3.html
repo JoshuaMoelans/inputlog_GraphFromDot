@@ -174,7 +174,8 @@ digraph source_graph {
     root = pack(data);
     let focus = root;
     let view;
-
+    console.log(data)
+    console.log(root)
     svg = d3.select("#mynetwork")
         .attr("viewBox", `-${width / 2} -${height / 2} ${width} ${height}`)
         .style("display", "block")

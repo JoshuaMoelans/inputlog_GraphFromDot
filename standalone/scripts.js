@@ -666,6 +666,22 @@ document.addEventListener("DOMContentLoaded", function () {
             }
             removeFromClustering();
         }
+
+        if(event.code === "KeyT" && !event.ctrlKey) {
+            var modal = document.getElementById('myModal');
+            if (modal.style.display === "block") {
+                return;
+            }
+            toggleView();
+        }
+
+        if(event.code === "KeyS" && !event.ctrlKey) {
+            var modal = document.getElementById('myModal');
+            if (modal.style.display === "block") {
+                return;
+            }
+            saveDotFile();
+        }
     });
 
     function removeFromClustering(){

@@ -553,8 +553,7 @@ document.addEventListener("DOMContentLoaded", function () {
             document.getElementById("info").style.display = "none";
             document.getElementById("tasks").style.display = "none";
 
-            container.style.width = "0px";
-            container.style.height = "0px";
+            container.style.display = "none";
             d3container.style.width = window.innerWidth * 0.94 + "px";
             d3container.style.height = window.innerHeight * 0.85 + "px";
 
@@ -567,10 +566,10 @@ document.addEventListener("DOMContentLoaded", function () {
             document.getElementById("info").style.display = "block";
             document.getElementById("tasks").style.display = "block";
 
+            container.style.display = "block";
             container.style.width = window.innerWidth * 0.94 + "px";
             container.style.height = window.innerHeight * 0.85 + "px";
-            d3container.style.width = "0px";
-            d3container.style.height = "0px";
+            d3container.style.display = "none";
         }
     }
 

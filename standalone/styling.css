@@ -8,6 +8,11 @@
     border: 1px solid #357edd;
     border-radius: 0.5rem;
     background-color: rgba(255, 255, 255, 0.8);
+    font-family: sans-serif;
+}
+
+circle{
+    stroke: black;
 }
 
 #contextMenu {

@@ -396,8 +396,8 @@ document.addEventListener("DOMContentLoaded", function () {
         const nodeWidths = {};
     
         // Regular expression patterns for extracting cluster and node information
-        const nodePattern = /node\s+\[width=(\d+)\s+.*?\s+label="(.*?)"(?:\s+cluster="(.*?)")?\]\s+(\d+)/gs;
-    
+        const nodePattern = /node\s+\[width=(\d+)\s+.*?fillcolor="(.*?)"\s.*?\s+label="(.*?)"(?:\s+cluster="(.*?)")?\]\s+(\d+)/gs;
+
         // Function to find all matches in the string using a regex pattern
         function findAllMatches(regex, text) {
             const matches = [];
@@ -412,20 +412,23 @@ document.addEventListener("DOMContentLoaded", function () {
     
         for (const nodeMatch of nodeMatches) {
             const nodeWidth = parseInt(nodeMatch[1]);
-            const nodeName = nodeMatch[2];
-            const clusterGroup = nodeMatch[3] || 'root';
+            const color = nodeMatch[2];
+            const nodeName = nodeMatch[3];
+            const clusterGroup = nodeMatch[4] || 'root';
+            console.log(nodeMatch)
     
             if (clusterGroup === 'root') {
-            clusters.push({
-                name: nodeName,
-                value: nodeWidth,
-            });
+                clusters.push({
+                    name: nodeName,
+                    value: nodeWidth,
+                    color: color,
+                });
             }
             else {
             if (clusterDict[clusterGroup] === undefined) {
                 clusterDict[clusterGroup] = {
-                name: clusterGroup,
-                children: [],
+                    name: clusterGroup,
+                    children: [],
                 };
             }
     
@@ -437,10 +440,13 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         }      
     
+
+        colors = generateColors(Object.keys(clusterDict).length);
         for (const clusterGroup in clusterDict) {
-            clusters.push(clusterDict[clusterGroup]);
+            let cluster = clusterDict[clusterGroup];
+            cluster.color = colors.pop();
+            clusters.push(cluster);
         }
-    
         // Convert JSON data to a hierarchical format
         const root = {
             name: "root",
@@ -478,7 +484,36 @@ document.addEventListener("DOMContentLoaded", function () {
             .style("fill-opacity", d => d.parent === focus ? 1 : 0)
             .on("start", function(d) { if (d.parent === focus) this.style.display = "inline"; })
             .on("end", function(d) { if (d.parent !== focus) this.style.display = "none"; });
+
+        transition.selectAll("text").call(wrap, 2);
     }
+
+
+    function wrap(text, width) {
+        text.each(function() {
+          var text = d3.select(this),
+              words = text.text().split(/\s+/).reverse(),
+              word,
+              wordCount = 0,
+              line = [],
+              lineNumber = 0,
+              lineHeight = 1.1, // ems
+              y = text.attr("y") !== null ? text.attr('y') : 0,
+              dy = text.attr("dy") !== null ? parseFloat(text.attr("dy")) : 0,
+              tspan = text.text(null).append("tspan").attr("x", 0).attr("y", y).attr("dy", dy + "em");
+          while (word = words.pop()) {
+            line.push(word);
+            tspan.text(line.join(" "));
+            if (wordCount++ >= width) {
+              line.pop();
+              tspan.text(line.join(" "));
+              line = [word];
+              tspan = text.append("tspan").attr("x", 0).attr("y", y).attr("dy", ++lineNumber * lineHeight + dy + "em").text(word);
+              wordCount = 0;
+            }
+          }
+        });
+      }
 
     // Function to create the network visualization with a given DOT string
     function createD3Graph() {
@@ -489,14 +524,10 @@ document.addEventListener("DOMContentLoaded", function () {
         let height = parseFloat(d3container.style.height);
         let minSize = Math.max(width, height);
     
-        const color = d3.scaleLinear()
-            .domain([0, 5])
-            .range(["hsl(152,80%,80%)", "hsl(228,30%,40%)"])
-            .interpolate(d3.interpolateHcl);
-    
         const pack = data => d3.pack()
             .size([width, height])
-            .padding(3)
+            .padding(1.5)
+            .radius(d => 1 + d.value)
             (d3.hierarchy(data)
             .sum(d => d.value)
             .sort((a, b) => b.value - a.value));
@@ -507,7 +538,6 @@ document.addEventListener("DOMContentLoaded", function () {
         svg = d3.select("#d3graph")
             .attr("viewBox", `-${minSize / 2} -${minSize / 2} ${minSize} ${minSize}`)
             .style("display", "block")
-            .style("background", color(0))
             .style("cursor", "pointer")
             .on("click", (event) => zoom(event, root));
     
@@ -515,22 +545,15 @@ document.addEventListener("DOMContentLoaded", function () {
             .selectAll("circle")
             .data(root.descendants().slice(1))
             .join("circle")
-            .attr("fill", d => d.children ? color(d.depth) : "white")
+            .attr("fill", d => d.data.data.color ? d.data.data.color : "white")
             .attr("pointer-events", d => !d.children ? "none" : null)
             .on("mouseover", function() { d3.select(this).attr("stroke", "#000"); })
             .on("mouseout", function() { d3.select(this).attr("stroke", null); })
             .on("click", (event, d) => focus !== d && (zoom(event, d), event.stopPropagation()));
-    
-        function getSize(d) {
-            var bbox = this.getBBox(),
-                cbbox = this.parentNode.getBBox(),
-                scale = Math.min(cbbox.width/bbox.width, cbbox.height/bbox.height);
-            d.scale = scale;
-        }
         
         // TODO: automatic font size scaling doesnt work yet
         label = svg.append("g")
-            .style("font", "sans-serif")
+            .style("font", "sans-serif") 
             .attr("pointer-events", "none")
             .attr("text-anchor", "middle")
             .selectAll("text")
@@ -538,10 +561,8 @@ document.addEventListener("DOMContentLoaded", function () {
             .join("text")
             .style("fill-opacity", d => d.parent === root ? 1 : 0)
             .style("display", d => d.parent === root ? "inline" : "none")
-            .text(d => d.data.data.name)
-            .style("font-size", "30px")
-            .each(getSize)
-            .style("font-size", function(d) { return 30 * d.scale + "px"; });
+            .text(d => d.data.data.name + " (" + d.data.value + "%)")
+            .style("font-size", "30px");
     
         zoomTo([root.x, root.y, root.r * 2]);
     }
@@ -553,7 +574,8 @@ document.addEventListener("DOMContentLoaded", function () {
             document.getElementById("info").style.display = "none";
             document.getElementById("tasks").style.display = "none";
 
-            container.style.display = "none";
+            container.style.width = "0px";
+            container.style.height = "0px";
             d3container.style.width = window.innerWidth * 0.94 + "px";
             d3container.style.height = window.innerHeight * 0.85 + "px";
 
@@ -566,10 +588,10 @@ document.addEventListener("DOMContentLoaded", function () {
             document.getElementById("info").style.display = "block";
             document.getElementById("tasks").style.display = "block";
 
-            container.style.display = "block";
             container.style.width = window.innerWidth * 0.94 + "px";
             container.style.height = window.innerHeight * 0.85 + "px";
-            d3container.style.display = "none";
+            d3container.style.width = "0px";
+            d3container.style.height = "0px";
         }
     }
 
@@ -665,22 +687,6 @@ document.addEventListener("DOMContentLoaded", function () {
                 return;
             }
             removeFromClustering();
-        }
-
-        if(event.code === "KeyT" && !event.ctrlKey) {
-            var modal = document.getElementById('myModal');
-            if (modal.style.display === "block") {
-                return;
-            }
-            toggleView();
-        }
-
-        if(event.code === "KeyS" && !event.ctrlKey) {
-            var modal = document.getElementById('myModal');
-            if (modal.style.display === "block") {
-                return;
-            }
-            saveDotFile();
         }
     });
 

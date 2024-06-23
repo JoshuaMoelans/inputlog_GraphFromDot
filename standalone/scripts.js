@@ -396,7 +396,7 @@ document.addEventListener("DOMContentLoaded", function () {
         const nodeWidths = {};
     
         // Regular expression patterns for extracting cluster and node information
-        const nodePattern = /node\s+\[width=(\d+)\s+.*?fillcolor="(.*?)"\s.*?\s+label="(.*?)"(?:\s+cluster="(.*?)")?\]\s+(\d+)/gs;
+        const nodePattern = /node\s+\[width=([\d.]+)\s+.*?fillcolor="(.*?)"\s.*?bordercolor=(.*?)\s+label="(.*?)"(?:\s+cluster="(.*?)")?\]\s+(\d+)/gs;
 
         // Function to find all matches in the string using a regex pattern
         function findAllMatches(regex, text) {
@@ -411,34 +411,35 @@ document.addEventListener("DOMContentLoaded", function () {
         const nodeMatches = findAllMatches(nodePattern, dotString);
     
         for (const nodeMatch of nodeMatches) {
-            const nodeWidth = parseInt(nodeMatch[1]);
-            const color = nodeMatch[2];
-            const nodeName = nodeMatch[3];
-            const clusterGroup = nodeMatch[4] || 'root';
-            console.log(nodeMatch)
-    
-            if (clusterGroup === 'root') {
-                clusters.push({
-                    name: nodeName,
-                    value: nodeWidth,
-                    color: color,
-                });
+                const nodeWidth = parseFloat(nodeMatch[1]).toFixed(2); // Node width with 2 decimal points
+                const color = nodeMatch[2]; // Fill color
+                const nodeName = nodeMatch[4]; // Label (node name), previously incorrectly indexed
+                const clusterGroup = nodeMatch[5] || 'root'; // Optional cluster group, previously incorrectly indexed
+
+                console.log(nodeMatch);
+
+                if (clusterGroup === 'root') {
+                    clusters.push({
+                        name: nodeName,
+                        value: nodeWidth,
+                        color: color,
+                    });
+                } else {
+                    if (clusterDict[clusterGroup] === undefined) {
+                        clusterDict[clusterGroup] = {
+                            name: clusterGroup,
+                            children: [],
+                        };
+                    }
+
+                    nodeWidths[nodeName] = nodeWidth;
+                    clusterDict[clusterGroup].children.push({
+                        name: nodeName,
+                        value: nodeWidth,
+                        color: color, // Assuming you might also want to include color here
+                    });
+                }
             }
-            else {
-            if (clusterDict[clusterGroup] === undefined) {
-                clusterDict[clusterGroup] = {
-                    name: clusterGroup,
-                    children: [],
-                };
-            }
-    
-            nodeWidths[nodeName] = nodeWidth;
-            clusterDict[clusterGroup].children.push({
-                name: nodeName,
-                value: nodeWidth,
-            });
-            }
-        }      
     
 
         colors = generateColors(Object.keys(clusterDict).length);

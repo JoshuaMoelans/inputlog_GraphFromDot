@@ -96,6 +96,9 @@ document.addEventListener("DOMContentLoaded", function () {
                     defaultGraph = dotString;
                     initializeNetwork();
                     initializeNetwork();
+                    if(!networkView){
+                        toggleView()
+                    } 
                 } catch (err) {
                     alert("Error loading network: " + err.message);
                 }
